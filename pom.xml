@@ -137,6 +137,7 @@
         <module>pentaho-bundle-resource-manager</module>
         <module>pentaho-metastore-locator-api</module>
         <module>pentaho-proc-governor</module>
+        <module>pentaho-csrf</module>
       </modules>
     </profile>
     <profile>
