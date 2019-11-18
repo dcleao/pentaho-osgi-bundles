@@ -10,12 +10,12 @@
     <version>9.0.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>csrf-client-api</artifactId>
+  <artifactId>csrf-server-api</artifactId>
 
   <packaging>bundle</packaging>
 
   <name>${project.artifactId}</name>
-  <description>CSRF Client API</description>
+  <description>CSRF Server API</description>
 
   <dependencies>
     <!-- OSGi BEGIN -->
@@ -36,7 +36,7 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Bundle-Version>${project.version}</Bundle-Version>
             <Export-Package>
-              org.pentaho.csrf.client.*;version=${project.version}
+              org.pentaho.csrf.*;version=${project.version}
             </Export-Package>
             <Import-Package>*</Import-Package>
           </instructions>

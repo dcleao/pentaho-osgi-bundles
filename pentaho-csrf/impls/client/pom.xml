@@ -18,17 +18,72 @@
   <description>CSRF Client Implementation</description>
 
   <dependencies>
+    <!-- OSGi BEGIN -->
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+    <!-- OSGi END -->
+
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-client-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-server-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+    </dependency>
+
+    <!-- The following two dependencies are necessary at test time,
+         to provide a default implementation of javax.ws.rs.ext.RuntimeDelegate,
+         as required by the javax.ws.rs.core.Cookie class.
+
+         The jersey-client artifact provides com.sun.ws.rs.ext.RuntimeDelegateImpl.
+
+         See also the test resource file META-INF/services/javax.ws.rs.ext.RuntimeDelegate,
+         which actually registers the implementation.
+         -->
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-client</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
+    <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Bundle-Version>${project.version}</Bundle-Version>
+            <Import-Package>*</Import-Package>
+          </instructions>
+        </configuration>
       </plugin>
     </plugins>
   </build>
