@@ -1,4 +1,4 @@
-/*
+/*!
  * This program is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License, version 2.1 as published by the Free Software
  * Foundation.
@@ -12,14 +12,40 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
- * Copyright 2014 - 2017 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
 
-package org.pentaho.platform.osgi.requirejs.api;
+package org.pentaho.csrf.client.impl;
+
+import org.pentaho.csrf.client.ICsrfToken;
 
 /**
- * Created by nbaker on 10/1/14.
+ * The `CsrfToken` class is a basic implementation of the `ICsrfToken` interface.
  */
-public interface IAmdCompressedModule extends IAmdScriptSource {
+public class CsrfToken implements ICsrfToken {
 
+  private String header;
+  private String parameter;
+  private String token;
+
+  CsrfToken( String header, String parameter, String token ) {
+    this.header = header;
+    this.parameter = parameter;
+    this.token = token;
+  }
+
+  /** @inheritDoc */
+  public String getHeader() {
+    return this.header;
+  }
+
+  /** @inheritDoc */
+  public String getParameter() {
+    return this.parameter;
+  }
+
+  /** @inheritDoc */
+  public String getToken() {
+    return this.token;
+  }
 }

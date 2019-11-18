@@ -17,11 +17,22 @@
   <name>${project.artifactId}</name>
   <description>CSRF Pentaho Web Client Implementation</description>
 
+  <properties>
+    <webpackage-root-directory>web</webpackage-root-directory>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <Provide-Capability>
+              org.pentaho.webpackage;root=/${webpackage-root-directory}
+            </Provide-Capability>
+          </instructions>
+        </configuration>
       </plugin>
     </plugins>
   </build>
