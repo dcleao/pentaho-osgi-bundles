@@ -19,6 +19,7 @@
 
   <modules>
     <module>client</module>
+    <module>server-filters</module>
     <module>pentaho</module>
   </modules>
 
