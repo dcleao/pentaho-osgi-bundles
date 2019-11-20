@@ -66,11 +66,6 @@ public class CsrfGateFilter implements Filter {
   }
 
   @VisibleForTesting
-  ICsrfProtectionDefinitionProvider getCsrfProtectionDefinitionProvider() {
-    return this.csrfProtectionDefinitionProvider;
-  }
-
-  @VisibleForTesting
   boolean getInitialized() {
     return this.initialized;
   }
