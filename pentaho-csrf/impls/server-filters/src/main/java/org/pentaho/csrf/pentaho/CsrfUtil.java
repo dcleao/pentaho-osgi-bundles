@@ -18,19 +18,42 @@
 package org.pentaho.csrf.pentaho;
 
 import org.pentaho.csrf.CsrfProtectionDefinition;
+import org.pentaho.csrf.ICsrfService;
 import org.pentaho.csrf.RequestMatcherDefinition;
 
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 class CsrfUtil {
+  // region CORS
+  private static final String ORIGIN_HEADER = "origin";
+  private static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+  private static final String CORS_ALLOW_CREDENTIALS_HEADER = "Access-Control-Allow-Credentials";
+  private static final String CORS_EXPOSE_HEADERS_HEADER = "Access-Control-Expose-Headers";
+  private static final String CORS_EXPOSED_HEADERS = String.join( ",", Arrays.asList(
+    ICsrfService.RESPONSE_HEADER_HEADER,
+    ICsrfService.RESPONSE_HEADER_PARAM,
+    ICsrfService.RESPONSE_HEADER_TOKEN ));
 
-  public static RequestMatcher buildCsrfRequestMatcher( Collection<CsrfProtectionDefinition> csrfProtectionDefinitions ) {
+  static void setCorsResponseHeaders( HttpServletRequest request, HttpServletResponse response  ) {
+    final String origin = request.getHeader( ORIGIN_HEADER );
+    if ( origin != null && origin.length() > 0 ) {
+      response.setHeader( CORS_ALLOW_ORIGIN_HEADER, origin );
+      response.setHeader( CORS_ALLOW_CREDENTIALS_HEADER, "true" );
+      response.setHeader( CsrfUtil.CORS_EXPOSE_HEADERS_HEADER, CORS_EXPOSED_HEADERS );
+    }
+  }
+  // endregion
+
+  static RequestMatcher buildCsrfRequestMatcher( Collection<CsrfProtectionDefinition> csrfProtectionDefinitions ) {
 
     List<RequestMatcher> requestMatchers = new ArrayList<>();
 

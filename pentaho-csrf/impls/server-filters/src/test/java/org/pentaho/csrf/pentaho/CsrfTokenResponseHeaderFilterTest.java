@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import org.mockito.verification.VerificationMode;
 import org.pentaho.csrf.ICsrfService;
-import org.pentaho.platform.web.WebUtil;
 
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -50,7 +49,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( PowerMockRunner.class )
-@PrepareForTest( WebUtil.class )
+@PrepareForTest( CsrfUtil.class )
 public class CsrfTokenResponseHeaderFilterTest {
 
   private HttpServletRequest mockRequest;
@@ -122,15 +121,12 @@ public class CsrfTokenResponseHeaderFilterTest {
 
     when( this.mockRequest.getAttribute( CsrfTokenResponseHeaderFilter.REQUEST_ATTRIBUTE_NAME ) ).thenReturn( token );
 
-    Map<String, List<String>> configuration = Collections.emptyMap();
-    when( this.filter.getCorsHeadersConfiguration() ).thenReturn( configuration );
-
-    PowerMockito.mockStatic( WebUtil.class );
+    PowerMockito.mockStatic( CsrfUtil.class );
 
     filter.doFilter( this.mockRequest, this.mockResponse, this.filterChain );
 
     PowerMockito.verifyStatic( once() );
-    WebUtil.setCorsResponseHeaders( this.mockRequest, this.mockResponse, configuration );
+    CsrfUtil.setCorsResponseHeaders( this.mockRequest, this.mockResponse );
   }
 
   @Test
