@@ -1,5 +1,4 @@
 /*!
- *
  * This program is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License, version 2.1 as published by the Free Software
  * Foundation.
@@ -13,16 +12,13 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
- *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
- *
  */
 package org.pentaho.csrf.pentaho;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.HttpStatus;
 import org.pentaho.csrf.ICsrfService;
-import org.pentaho.platform.web.WebUtil;
 
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -31,10 +27,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Binds a {@link org.springframework.security.web.csrf.CsrfToken} to the {@link HttpServletResponse} headers if the
@@ -69,23 +61,9 @@ public class CsrfTokenResponseHeaderFilter extends OncePerRequestFilter {
       response.setHeader( ICsrfService.RESPONSE_HEADER_TOKEN, tokenValue );
     }
 
-    // Add CORS headers, if CORS is enabled.
-    WebUtil.setCorsResponseHeaders( request, response, getCorsHeadersConfiguration() );
+    // Add CORS headers.
+    CsrfUtil.setCorsResponseHeaders( request, response );
 
     response.setStatus( HttpStatus.SC_NO_CONTENT );
-  }
-
-  @VisibleForTesting
-  Map<String, List<String>> getCorsHeadersConfiguration() {
-    Map<String, List<String>> corsConfiguration = new HashMap<>( 1 );
-
-    final List<String> exposedHeaders = Arrays.asList(
-      ICsrfService.RESPONSE_HEADER_HEADER,
-      ICsrfService.RESPONSE_HEADER_PARAM,
-      ICsrfService.RESPONSE_HEADER_TOKEN );
-
-    corsConfiguration.put( WebUtil.CORS_EXPOSE_HEADERS_HEADER, exposedHeaders );
-
-    return corsConfiguration;
   }
 }
