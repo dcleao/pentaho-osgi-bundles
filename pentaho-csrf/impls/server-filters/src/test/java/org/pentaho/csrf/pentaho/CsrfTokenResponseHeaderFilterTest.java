@@ -17,7 +17,6 @@
 
 package org.pentaho.csrf.pentaho;
 
-import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,10 +34,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.web.csrf.CsrfToken;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -142,7 +137,7 @@ public class CsrfTokenResponseHeaderFilterTest {
 
     filter.doFilter( this.mockRequest, this.mockResponse, this.filterChain );
 
-    verify( mockResponse, once() ).setStatus( HttpStatus.SC_NO_CONTENT );
+    verify( mockResponse, once() ).setStatus( HttpServletResponse.SC_NO_CONTENT );
   }
 
   private VerificationMode once() {

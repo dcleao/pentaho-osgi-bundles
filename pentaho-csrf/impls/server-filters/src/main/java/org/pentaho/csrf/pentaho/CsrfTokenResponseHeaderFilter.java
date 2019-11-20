@@ -17,7 +17,6 @@
 package org.pentaho.csrf.pentaho;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.HttpStatus;
 import org.pentaho.csrf.ICsrfService;
 
 import org.springframework.security.web.csrf.CsrfToken;
@@ -64,6 +63,6 @@ public class CsrfTokenResponseHeaderFilter extends OncePerRequestFilter {
     // Add CORS headers.
     CsrfUtil.setCorsResponseHeaders( request, response );
 
-    response.setStatus( HttpStatus.SC_NO_CONTENT );
+    response.setStatus( HttpServletResponse.SC_NO_CONTENT );
   }
 }
