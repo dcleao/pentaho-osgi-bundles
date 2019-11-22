@@ -107,7 +107,7 @@ public class CsrfTokenResponseHeaderFilterTest {
   }
 
   @Test
-  public void TestWhenCsrfTokenThenCorsResponseHeaders() throws Exception {
+  public void testWhenCsrfTokenThenCorsResponseHeaders() throws Exception {
     MockFilterConfig cfg = new MockFilterConfig();
 
     filter.init( cfg );
@@ -125,7 +125,7 @@ public class CsrfTokenResponseHeaderFilterTest {
   }
 
   @Test
-  public void TestStatusCodeNoContent() throws Exception {
+  public void testStatusCodeNoContent() throws Exception {
 
     MockFilterConfig cfg = new MockFilterConfig();
 

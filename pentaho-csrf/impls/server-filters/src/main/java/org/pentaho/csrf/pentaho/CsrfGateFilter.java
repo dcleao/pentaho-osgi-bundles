@@ -34,6 +34,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 
 @SuppressWarnings( "PackageAccessibility" )
 public class CsrfGateFilter implements Filter {
@@ -107,18 +108,20 @@ public class CsrfGateFilter implements Filter {
       return;
     }
 
-    this.isCsrfProtectionEnabled = this.csrfProtectionDefinitionProvider.isEnabled();
-    if ( this.isCsrfProtectionEnabled ) {
+    Collection<CsrfProtectionDefinition> csrfProtectionDefinitions =
+      this.csrfProtectionDefinitionProvider.getProtectionDefinitions();
 
-      RequestMatcher requestMatcher =
-          CsrfUtil.buildCsrfRequestMatcher( this.csrfProtectionDefinitionProvider.getProtectionDefinitions() );
+    boolean isCsrfProtectionEnabled = csrfProtectionDefinitions != null && csrfProtectionDefinitions.size() > 0;
+    if ( isCsrfProtectionEnabled ) {
+      RequestMatcher requestMatcher = CsrfUtil.buildCsrfRequestMatcher( csrfProtectionDefinitions );
       if ( requestMatcher == null ) {
-        this.isCsrfProtectionEnabled = false;
+        isCsrfProtectionEnabled = false;
       } else {
         this.innerCsrfFilter.setRequireCsrfProtectionMatcher( requestMatcher );
       }
     }
 
+    this.isCsrfProtectionEnabled = isCsrfProtectionEnabled;
     this.initialized = true;
   }
 

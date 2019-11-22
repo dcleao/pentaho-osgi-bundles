@@ -14,24 +14,16 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.pentaho.impl;
 
-import org.dom4j.Element;
 import org.pentaho.csrf.CsrfProtectionDefinition;
-import org.pentaho.platform.api.engine.IPlatformPlugin;
 import org.pentaho.platform.api.engine.IPlatformPluginFacet;
-import org.pentaho.platform.plugin.services.pluginmgr.IPlatformPluginFacetXmlReader;
 
 @SuppressWarnings( "PackageAccessibility" )
-public class CsrfPlatformPluginFacetXmlReader implements IPlatformPluginFacetXmlReader {
+public class CsrfPlatformPluginFacet implements IPlatformPluginFacet {
+
   @Override
-  public void read( IPlatformPlugin plugin, IPlatformPluginFacet facet, Element pluginDefinition ) {
-
-    Element csrfProtectionElem = (Element) pluginDefinition.selectSingleNode( CsrfUtil.CSRF_PROTECTION_ELEMENT );
-    if ( csrfProtectionElem != null ) {
-      CsrfProtectionDefinition protectionDefinition = CsrfUtil.parseXmlCsrfProtectionDefinition( csrfProtectionElem );
-
-      plugin.setFacet( CsrfProtectionDefinition.class, protectionDefinition );
-    }
+  public Class getDataClass() {
+    return CsrfProtectionDefinition.class;
   }
 }

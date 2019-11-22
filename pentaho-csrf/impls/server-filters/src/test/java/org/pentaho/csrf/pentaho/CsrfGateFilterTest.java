@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.pentaho.csrf.CsrfProtectionDefinition;
 import org.pentaho.csrf.ICsrfProtectionDefinitionListener;
 import org.pentaho.csrf.ICsrfProtectionDefinitionProvider;
 import org.powermock.api.mockito.PowerMockito;
@@ -40,6 +41,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -92,7 +95,7 @@ public class CsrfGateFilterTest {
   @Test
   public void testInitWithCsrfProtectionDisabled() throws Exception {
 
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( false );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.emptyList() );
 
     assertFalse( csrfGateFilter.getInitialized() );
 
@@ -109,8 +112,9 @@ public class CsrfGateFilterTest {
   @Test
   public void testInitWithCsrfProtectionEnabledButWithoutCsrfProtectionDefinitions() throws Exception {
 
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( true );
-    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( new ArrayList<>() );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.singletonList(
+      new CsrfProtectionDefinition()
+    ) );
 
     PowerMockito.mockStatic( CsrfUtil.class );
     when( CsrfUtil.buildCsrfRequestMatcher( any() ) ).thenReturn( null );
@@ -128,8 +132,9 @@ public class CsrfGateFilterTest {
   @Test
   public void testInitWithCsrfProtectionEnabledAndWithCsrfProtectionDefinitions() throws Exception {
 
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( true );
-    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( new ArrayList<>() );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.singletonList(
+      new CsrfProtectionDefinition()
+    ) );
 
     RequestMatcher requestMatcher = Mockito.mock( RequestMatcher.class );
     PowerMockito.mockStatic( CsrfUtil.class );
@@ -154,8 +159,9 @@ public class CsrfGateFilterTest {
 
     doNothing().when( csrfProtectionDefinitionProvider ).addListener( listenerCapture.capture() );
 
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( true );
-    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( new ArrayList<>() );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.singletonList(
+      new CsrfProtectionDefinition()
+    ) );
 
     RequestMatcher requestMatcher = Mockito.mock( RequestMatcher.class );
     PowerMockito.mockStatic( CsrfUtil.class );
@@ -183,8 +189,7 @@ public class CsrfGateFilterTest {
   public void testDoFilterWhenInitializedAndCsrfProtectionDisabled() throws Exception {
 
     // Setup
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( false );
-    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( new ArrayList<>() );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.emptyList() );
 
     csrfGateFilter.init( filterConfig );
 
@@ -203,8 +208,9 @@ public class CsrfGateFilterTest {
   public void testDoFilterWhenInitializedAndCsrfProtectionEnabled() throws Exception {
 
     // Setup
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( true );
-    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( new ArrayList<>() );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.singletonList(
+      new CsrfProtectionDefinition()
+    ) );
 
     RequestMatcher requestMatcher = Mockito.mock( RequestMatcher.class );
     when( requestMatcher.matches( any() ) ).thenReturn( false );
@@ -242,8 +248,9 @@ public class CsrfGateFilterTest {
   public void testDoFilterWhileReloadAndCsrfProtectionEnabled() throws Exception {
 
     // Setup
-    when( csrfProtectionDefinitionProvider.isEnabled() ).thenReturn( true );
-    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( new ArrayList<>() );
+    when( csrfProtectionDefinitionProvider.getProtectionDefinitions() ).thenReturn( Collections.singletonList(
+      new CsrfProtectionDefinition()
+    ) );
 
     RequestMatcher requestMatcher = Mockito.mock( RequestMatcher.class );
     when( requestMatcher.matches( any() ) ).thenReturn( false );

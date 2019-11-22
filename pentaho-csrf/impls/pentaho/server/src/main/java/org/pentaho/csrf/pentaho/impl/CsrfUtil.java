@@ -15,14 +15,14 @@
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
 
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.pentaho.impl;
 
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.pentaho.csrf.CsrfProtectionDefinition;
 import org.pentaho.csrf.RequestMatcherDefinition;
 
-import org.pentaho.csrf.pentaho.messages.Messages;
+import org.pentaho.csrf.pentaho.impl.messages.Messages;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.ArrayList;

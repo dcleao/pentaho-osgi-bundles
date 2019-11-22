@@ -1,4 +1,5 @@
 /*!
+ *
  * This program is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License, version 2.1 as published by the Free Software
  * Foundation.
@@ -14,29 +15,33 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
+
 package org.pentaho.csrf.pentaho;
 
-import org.pentaho.csrf.CsrfProtectionDefinition;
-import org.pentaho.csrf.ICsrfProtectionDefinitionListener;
 import org.pentaho.csrf.ICsrfProtectionDefinitionProvider;
-import org.pentaho.platform.api.engine.IPluginManager;
-import org.pentaho.platform.engine.core.system.PentahoSystem;
 
-import java.util.Collection;
+/**
+ * This interface represents a provider of CSRF protection definitions.
+ */
+public interface IPentahoCsrfProtection extends ICsrfProtectionDefinitionProvider {
 
-public class CsrfProtectionDefinitionProvider implements ICsrfProtectionDefinitionProvider {
-  @Override
-  public boolean isEnabled() {
-    return PentahoSystem.isCsrfProtectionEnabled();
-  }
+  /**
+   * Gets a value that indicates if CSRF protection is globally enabled for
+   * the Pentaho server.
+   *
+   * @return {@code true} if enabled; {@code false}, otherwise.
+   */
+  boolean isEnabled();
 
-  @Override
-  public Collection<CsrfProtectionDefinition> getProtectionDefinitions() {
-    return PentahoSystem.getAll( CsrfProtectionDefinition.class );
-  }
-
-  @Override
-  public void addListener( final ICsrfProtectionDefinitionListener listener ) {
-    PentahoSystem.get( IPluginManager.class ).addPluginManagerListener( listener::onDefinitionsChanged );
-  }
+  /**
+   * Gets a value that indicates if CSRF protection is enabled for
+   * the Pentaho server and a given Pentaho platform plugin.
+   *
+   * When CSRF protection is globally disabled, this method always returns {@code false}.
+   *
+   * @param pluginId - The identifier of the Pentaho platform plugin.
+   *
+   * @return {@code true} if enabled for the server and the plugin; {@code false}, otherwise.
+   */
+  boolean isEnabled( String pluginId );
 }
