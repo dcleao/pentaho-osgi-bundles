@@ -23,8 +23,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.pentaho.csrf.CsrfProtectionDefinition;
-import org.pentaho.csrf.pentaho.impl.CsrfProtectionSystemListener;
-import org.pentaho.csrf.pentaho.impl.CsrfUtil;
+import org.pentaho.csrf.pentaho.IPentahoCsrfProtection;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.ISystemSettings;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
@@ -49,19 +48,21 @@ public class CsrfProtectionSystemListenerTest {
   private ISystemSettings systemSettings;
   @Mock
   private IPentahoSession session;
+  @Mock
+  private IPentahoCsrfProtection pentahoCsrfProtection;
 
   private CsrfProtectionSystemListener csrfProtectionSystemListener;
 
   @Before
   public void setUp() {
-    csrfProtectionSystemListener = new CsrfProtectionSystemListener();
+    csrfProtectionSystemListener = new CsrfProtectionSystemListener( pentahoCsrfProtection );
   }
 
   @Test
   public void testStartupCsrfProtectionDisabled() {
     PowerMockito.mockStatic( PentahoSystem.class );
     when( PentahoSystem.registerReference( any(), eq( CsrfProtectionDefinition.class ) ) ).thenReturn( null );
-    when( PentahoSystem.isCsrfProtectionEnabled() ).thenReturn( false );
+    when( pentahoCsrfProtection.isEnabled() ).thenReturn( false );
 
     boolean result = csrfProtectionSystemListener.startup( session );
 
@@ -76,9 +77,9 @@ public class CsrfProtectionSystemListenerTest {
     PowerMockito.mockStatic( PentahoSystem.class );
 
     when( PentahoSystem.registerReference( any(), eq( CsrfProtectionDefinition.class ) ) ).thenReturn( null );
-    when( PentahoSystem.isCsrfProtectionEnabled() ).thenReturn( false );
+    when( pentahoCsrfProtection.isEnabled() ).thenReturn( false );
     when( PentahoSystem.getSystemSettings() ).thenReturn( systemSettings );
-    when( systemSettings.getSystemSettings( eq( "csrf-protection" ) ) ).thenReturn( new ArrayList() );
+    when( systemSettings.getSystemSettings( eq( CsrfUtil.CSRF_PROTECTION_ELEMENT ) ) ).thenReturn( new ArrayList() );
 
     boolean result = csrfProtectionSystemListener.startup( session );
 
@@ -94,14 +95,14 @@ public class CsrfProtectionSystemListenerTest {
     PowerMockito.mockStatic( CsrfUtil.class );
 
     when( PentahoSystem.registerReference( any(), eq( CsrfProtectionDefinition.class ) ) ).thenReturn( null );
-    when( PentahoSystem.isCsrfProtectionEnabled() ).thenReturn( true );
+    when( pentahoCsrfProtection.isEnabled() ).thenReturn( true );
     when( PentahoSystem.getSystemSettings() ).thenReturn( systemSettings );
 
     Element protectionElem = Mockito.mock( Element.class );
     List<Element> csrfProtectionElems = new ArrayList<>();
     csrfProtectionElems.add( protectionElem );
 
-    when( systemSettings.getSystemSettings( eq( "csrf-protection" ) ) ).thenReturn( csrfProtectionElems );
+    when( systemSettings.getSystemSettings( eq( CsrfUtil.CSRF_PROTECTION_ELEMENT ) ) ).thenReturn( csrfProtectionElems );
 
     CsrfProtectionDefinition csrfProtectionDefinition = Mockito.mock( CsrfProtectionDefinition.class );
 
@@ -124,14 +125,14 @@ public class CsrfProtectionSystemListenerTest {
     PowerMockito.mockStatic( CsrfUtil.class );
 
     when( PentahoSystem.registerReference( any(), eq( CsrfProtectionDefinition.class ) ) ).thenReturn( null );
-    when( PentahoSystem.isCsrfProtectionEnabled() ).thenReturn( true );
+    when( pentahoCsrfProtection.isEnabled() ).thenReturn( true );
     when( PentahoSystem.getSystemSettings() ).thenReturn( systemSettings );
 
     Element protectionElem = Mockito.mock( Element.class );
     List<Element> csrfProtectionElems = new ArrayList<>();
     csrfProtectionElems.add( protectionElem );
 
-    when( systemSettings.getSystemSettings( eq( "csrf-protection" ) ) ).thenReturn( csrfProtectionElems );
+    when( systemSettings.getSystemSettings( eq( CsrfUtil.CSRF_PROTECTION_ELEMENT ) ) ).thenReturn( csrfProtectionElems );
 
     when( CsrfUtil.parseXmlCsrfProtectionDefinition( eq( protectionElem ) ) )
         .thenThrow( new IllegalArgumentException( "TEST" ) );
@@ -149,7 +150,7 @@ public class CsrfProtectionSystemListenerTest {
 
   @Test
   public void testShutdown() {
-    // no code in here, solely for unit test coverage
+    // TODO: test this
     csrfProtectionSystemListener.shutdown();
   }
 }

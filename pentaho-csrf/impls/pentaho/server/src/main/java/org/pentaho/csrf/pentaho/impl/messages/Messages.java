@@ -19,6 +19,7 @@ package org.pentaho.csrf.pentaho.impl.messages;
 
 import org.pentaho.platform.util.messages.MessagesBase;
 
+@SuppressWarnings( "PackageAccessibility" )
 public class Messages extends MessagesBase {
 
   private static final String BUNDLE_NAME = Messages.class.getPackage().getName() + ".messages";

@@ -51,7 +51,7 @@ public class CsrfProtectionSystemListener implements IPentahoSystemListener {
       return true;
     }
 
-    List csrProtectionNodes = PentahoSystem.getSystemSettings().getSystemSettings( "csrf-protection" );
+    List csrProtectionNodes = PentahoSystem.getSystemSettings().getSystemSettings( CsrfUtil.CSRF_PROTECTION_ELEMENT );
     if ( csrProtectionNodes.size() > 0 ) {
       Element csrfProtectionElem = (Element) csrProtectionNodes.get( 0 );
 
