@@ -51,6 +51,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-pentaho-server-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
     </dependency>

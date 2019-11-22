@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+@SuppressWarnings( "PackageAccessibility" )
 class CsrfUtil {
   // region CORS
   private static final String ORIGIN_HEADER = "origin";

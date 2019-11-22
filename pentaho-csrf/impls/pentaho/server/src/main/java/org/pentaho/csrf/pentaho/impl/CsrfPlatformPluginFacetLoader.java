@@ -14,9 +14,10 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.pentaho.impl;
 
 import org.pentaho.csrf.CsrfProtectionDefinition;
+import org.pentaho.csrf.pentaho.IPentahoCsrfProtection;
 import org.pentaho.platform.api.engine.IPentahoObjectRegistration;
 import org.pentaho.platform.api.engine.IPentahoRegistrableObjectFactory;
 import org.pentaho.platform.api.engine.IPlatformPlugin;
@@ -29,14 +30,24 @@ import java.util.Collections;
 
 import static org.pentaho.platform.plugin.services.pluginmgr.PentahoSystemPluginManager.PLUGIN_ID;
 
+@SuppressWarnings( "PackageAccessibility" )
 public class CsrfPlatformPluginFacetLoader implements IPlatformPluginFacetLoader {
 
-  @SuppressWarnings( "PackageAccessibility" )
+  private final IPentahoCsrfProtection pentahoCsrfProtection;
+
+  public CsrfPlatformPluginFacetLoader( IPentahoCsrfProtection pentahoCsrfProtection ) {
+    this.pentahoCsrfProtection = pentahoCsrfProtection;
+  }
+
   @Override
   public Closeable load(
     IPlatformPlugin plugin,
     IPlatformPluginFacet facet,
     IPentahoRegistrableObjectFactory pentahoSystemObjectFactory ) {
+
+    if ( !pentahoCsrfProtection.isEnabled( plugin.getId() ) ) {
+      return null;
+    }
 
     CsrfProtectionDefinition protectionDefinition = plugin.getFacet( CsrfProtectionDefinition.class );
     if ( protectionDefinition == null ) {

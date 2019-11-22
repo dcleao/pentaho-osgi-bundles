@@ -14,7 +14,7 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.pentaho.impl;
 
 import org.dom4j.Element;
 import org.junit.Before;
@@ -23,6 +23,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.pentaho.csrf.CsrfProtectionDefinition;
+import org.pentaho.csrf.pentaho.impl.CsrfProtectionSystemListener;
+import org.pentaho.csrf.pentaho.impl.CsrfUtil;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.ISystemSettings;
 import org.pentaho.platform.engine.core.system.PentahoSystem;

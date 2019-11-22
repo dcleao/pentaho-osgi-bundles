@@ -26,18 +26,14 @@ import java.util.Collection;
 public interface ICsrfProtectionDefinitionProvider {
 
   /**
-   * Gets a value that indicates if the CSRF protection is enabled.
-   */
-  boolean isEnabled();
-
-  /**
    * Gets the collection of CSRF protection definitions.
+   *
+   * The collection may be empty.
    */
   Collection<CsrfProtectionDefinition> getProtectionDefinitions();
 
   /**
-   * Adds a listener for changes to the either the list of protections definitions
-   * or the provider's enabled status.
+   * Adds a listener for changes to the list of protections definitions.
    */
   void addListener(ICsrfProtectionDefinitionListener listener);
 }

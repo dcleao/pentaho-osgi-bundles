@@ -14,18 +14,19 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.pentaho.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
 import org.pentaho.csrf.CsrfProtectionDefinition;
+import org.pentaho.csrf.pentaho.IPentahoCsrfProtection;
 import org.pentaho.platform.api.engine.IPentahoObjectRegistration;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPentahoSystemListener;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.engine.core.system.objfac.references.SingletonPentahoObjectReference;
-import org.pentaho.csrf.pentaho.messages.Messages;
+import org.pentaho.csrf.pentaho.impl.messages.Messages;
 
 import java.util.List;
 
@@ -34,11 +35,21 @@ public class CsrfProtectionSystemListener implements IPentahoSystemListener {
 
   private static final Log logger = LogFactory.getLog( CsrfProtectionSystemListener.class );
 
+  private final IPentahoCsrfProtection pentahoCsrfProtection;
+
   private IPentahoObjectRegistration protectionDefinitionRegistration = null;
+
+  public CsrfProtectionSystemListener( IPentahoCsrfProtection pentahoCsrfProtection ) {
+    this.pentahoCsrfProtection = pentahoCsrfProtection;
+  }
 
   @Override
   public boolean startup( IPentahoSession session ) {
     // Register pentaho.xml's CsrfProtectionDefinition.
+
+    if ( !pentahoCsrfProtection.isEnabled() ) {
+      return true;
+    }
 
     List csrProtectionNodes = PentahoSystem.getSystemSettings().getSystemSettings( "csrf-protection" );
     if ( csrProtectionNodes.size() > 0 ) {
@@ -56,7 +67,7 @@ public class CsrfProtectionSystemListener implements IPentahoSystemListener {
         return true;
       }
 
-      IPentahoObjectRegistration registration = PentahoSystem.registerReference(
+      protectionDefinitionRegistration = PentahoSystem.registerReference(
         new SingletonPentahoObjectReference.Builder<>( CsrfProtectionDefinition.class )
           .object( csrfProtectionDefinition )
           .build(),
