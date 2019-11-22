@@ -23,19 +23,18 @@ import org.pentaho.csrf.CsrfProtectionDefinition;
 import org.pentaho.csrf.RequestMatcherDefinition;
 
 import org.pentaho.csrf.pentaho.messages.Messages;
-
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-public class CsrfUtil {
+@SuppressWarnings( "PackageAccessibility" )
+class CsrfUtil {
 
-  public static CsrfProtectionDefinition parseXmlCsrfProtectionDefinition( Element csrfProtectionElem ) {
+  static final String CSRF_PROTECTION_ELEMENT = "csrf-protection";
+  private static final String CSRF_PROTECTION_REQUEST_MATCHER_ELEMENT = "request-matcher";
+
+  static CsrfProtectionDefinition parseXmlCsrfProtectionDefinition( Element csrfProtectionElem ) {
     /* Example XML
      * <csrf-protection>
      *   <request-matcher type="regex" methods="GET,POST" pattern="" />
@@ -44,7 +43,7 @@ public class CsrfUtil {
      */
     List<RequestMatcherDefinition> requestMatchers = new ArrayList<>();
 
-    for ( Node csrfRequestMatcherNode : csrfProtectionElem.selectNodes( "request-matcher" ) ) {
+    for ( Node csrfRequestMatcherNode : csrfProtectionElem.selectNodes( CSRF_PROTECTION_REQUEST_MATCHER_ELEMENT ) ) {
       requestMatchers.add( getCsrfRequestMatcher( (Element) csrfRequestMatcherNode ) );
     }
 
@@ -96,38 +95,5 @@ public class CsrfUtil {
     }
 
     return new RequestMatcherDefinition( type, pattern, methodsCol );
-  }
-
-  public static RequestMatcher buildCsrfRequestMatcher( Collection<CsrfProtectionDefinition> csrfProtectionDefinitions ) {
-
-    List<RequestMatcher> requestMatchers = new ArrayList<>();
-
-    for ( CsrfProtectionDefinition csrfProtectionDefinition : csrfProtectionDefinitions ) {
-      collectRequestMatchers( requestMatchers, csrfProtectionDefinition );
-    }
-
-    return requestMatchers.size() > 0 ? new OrRequestMatcher( requestMatchers ) : null;
-  }
-
-  private static void collectRequestMatchers( Collection<RequestMatcher> requestMatchers,
-                                              CsrfProtectionDefinition csrfProtectionDefinition ) {
-
-    Collection<RequestMatcherDefinition> requestMatcherDefinitions =
-      csrfProtectionDefinition.getProtectedRequestMatchers();
-    if ( requestMatcherDefinitions != null ) {
-      for ( RequestMatcherDefinition requestMatcherDefinition : requestMatcherDefinitions ) {
-
-        Collection<String> httpMethods = requestMatcherDefinition.getMethods();
-        if ( httpMethods == null ) {
-          requestMatchers.add(
-            new RegexRequestMatcher( requestMatcherDefinition.getPattern(), null, false ) );
-        } else {
-          for ( String httpMethod : requestMatcherDefinition.getMethods() ) {
-            requestMatchers.add(
-              new RegexRequestMatcher( requestMatcherDefinition.getPattern(), httpMethod, false ) );
-          }
-        }
-      }
-    }
   }
 }

@@ -35,6 +35,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
 
+@SuppressWarnings( "PackageAccessibility" )
 public class CsrfGateFilter implements Filter {
 
   private static final Log logger = LogFactory.getLog( CsrfGateFilter.class );
@@ -118,7 +119,7 @@ public class CsrfGateFilter implements Filter {
       }
     }
 
-    initialized = true;
+    this.initialized = true;
   }
 
   @Override

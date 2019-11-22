@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
 import org.pentaho.csrf.CsrfProtectionDefinition;
+import org.pentaho.platform.api.engine.IPentahoObjectRegistration;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPentahoSystemListener;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
@@ -28,37 +29,38 @@ import org.pentaho.csrf.pentaho.messages.Messages;
 
 import java.util.List;
 
+@SuppressWarnings( "PackageAccessibility" )
 public class CsrfProtectionSystemListener implements IPentahoSystemListener {
 
   private static final Log logger = LogFactory.getLog( CsrfProtectionSystemListener.class );
 
+  private IPentahoObjectRegistration protectionDefinitionRegistration = null;
+
   @Override
   public boolean startup( IPentahoSession session ) {
     // Register pentaho.xml's CsrfProtectionDefinition.
-    if ( PentahoSystem.isCsrfProtectionEnabled() ) {
 
-      List csrProtectionNodes = PentahoSystem.getSystemSettings().getSystemSettings( "csrf-protection" );
-      if ( csrProtectionNodes.size() > 0 ) {
-        Element csrfProtectionElem = (Element) csrProtectionNodes.get( 0 );
+    List csrProtectionNodes = PentahoSystem.getSystemSettings().getSystemSettings( "csrf-protection" );
+    if ( csrProtectionNodes.size() > 0 ) {
+      Element csrfProtectionElem = (Element) csrProtectionNodes.get( 0 );
 
-        CsrfProtectionDefinition csrfProtectionDefinition;
-        try {
-          csrfProtectionDefinition = CsrfUtil.parseXmlCsrfProtectionDefinition( csrfProtectionElem );
-        } catch ( IllegalArgumentException parseError ) {
-          logger.warn(
-            "CsrfProtectionSystemListener:" +
-              Messages.getInstance().getString(
-                "CsrfProtectionSystemListener.WARN_CSRF_SYSTEM_NOT_REGISTERED",
-                parseError.getMessage() ) );
-          return true;
-        }
-
-        PentahoSystem.registerReference(
-          new SingletonPentahoObjectReference.Builder<>( CsrfProtectionDefinition.class )
-            .object( csrfProtectionDefinition )
-            .build(),
-          CsrfProtectionDefinition.class );
+      CsrfProtectionDefinition csrfProtectionDefinition;
+      try {
+        csrfProtectionDefinition = CsrfUtil.parseXmlCsrfProtectionDefinition( csrfProtectionElem );
+      } catch ( IllegalArgumentException parseError ) {
+        logger.warn(
+          "CsrfProtectionSystemListener:" +
+            Messages.getInstance().getString(
+              "CsrfProtectionSystemListener.WARN_CSRF_SYSTEM_NOT_REGISTERED",
+              parseError.getMessage() ) );
+        return true;
       }
+
+      IPentahoObjectRegistration registration = PentahoSystem.registerReference(
+        new SingletonPentahoObjectReference.Builder<>( CsrfProtectionDefinition.class )
+          .object( csrfProtectionDefinition )
+          .build(),
+        CsrfProtectionDefinition.class );
     }
 
     return true;
@@ -66,6 +68,9 @@ public class CsrfProtectionSystemListener implements IPentahoSystemListener {
 
   @Override
   public void shutdown() {
-    // Nothing required
+    if ( protectionDefinitionRegistration != null ) {
+      protectionDefinitionRegistration.remove();
+      protectionDefinitionRegistration = null;
+    }
   }
 }
