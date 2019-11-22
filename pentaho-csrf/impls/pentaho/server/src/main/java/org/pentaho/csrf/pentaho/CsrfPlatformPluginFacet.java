@@ -14,22 +14,16 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
+package org.pentaho.csrf.pentaho;
 
-package org.pentaho.csrf.pentaho.messages;
+import org.pentaho.csrf.CsrfProtectionDefinition;
+import org.pentaho.platform.api.engine.IPlatformPluginFacet;
 
-import org.pentaho.platform.util.messages.MessagesBase;
+@SuppressWarnings( "PackageAccessibility" )
+public class CsrfPlatformPluginFacet implements IPlatformPluginFacet {
 
-public class Messages extends MessagesBase {
-
-  private static final String BUNDLE_NAME = Messages.class.getPackage().getName() + ".messages";
-
-  private static Messages instance = new Messages();
-
-  private Messages() {
-    super( BUNDLE_NAME );
-  }
-
-  public static Messages getInstance() {
-    return instance;
+  @Override
+  public Class getDataClass() {
+    return CsrfProtectionDefinition.class;
   }
 }
