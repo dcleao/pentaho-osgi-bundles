@@ -15,7 +15,7 @@
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
 
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.filter;
 
 import org.pentaho.csrf.CsrfProtectionDefinition;
 import org.pentaho.csrf.ICsrfService;

@@ -14,7 +14,7 @@
  *
  * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
  */
-package org.pentaho.csrf.pentaho;
+package org.pentaho.csrf.filter;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,8 +40,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
