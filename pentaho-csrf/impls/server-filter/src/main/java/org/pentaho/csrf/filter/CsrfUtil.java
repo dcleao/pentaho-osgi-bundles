@@ -43,7 +43,7 @@ class CsrfUtil {
   static final String CORS_EXPOSED_HEADERS = String.join( ",", Arrays.asList(
     ICsrfService.RESPONSE_HEADER_HEADER,
     ICsrfService.RESPONSE_HEADER_PARAM,
-    ICsrfService.RESPONSE_HEADER_TOKEN ));
+    ICsrfService.RESPONSE_HEADER_TOKEN ) );
 
   static void setCorsResponseHeaders(
     HttpServletRequest request,

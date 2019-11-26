@@ -69,7 +69,7 @@ public class PentahoCsrfProtection implements IPentahoCsrfProtection {
 
   @Override
   public void addListener( final ICsrfProtectionDefinitionListener listener ) {
-    PentahoSystem.get( IPluginManager.class ).addPluginManagerListener( listener::onDefinitionsChanged );
+    getPluginManager().addPluginManagerListener( listener::onDefinitionsChanged );
   }
 
   @Override

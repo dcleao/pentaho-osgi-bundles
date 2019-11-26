@@ -24,6 +24,7 @@ import org.pentaho.csrf.CsrfProtectionDefinition;
 
 import org.pentaho.csrf.ICsrfProtectionDefinitionProvider;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -41,14 +42,14 @@ public class CsrfGateFilter implements Filter {
 
   private static final Log logger = LogFactory.getLog( CsrfGateFilter.class );
 
-  private org.springframework.security.web.csrf.CsrfFilter innerCsrfFilter;
+  private CsrfFilter innerCsrfFilter;
   private boolean isCsrfProtectionEnabled = true;
   private boolean initialized = false;
   private ICsrfProtectionDefinitionProvider csrfProtectionDefinitionProvider;
 
   public CsrfGateFilter( CsrfTokenRepository csrfTokenRepository, ICsrfProtectionDefinitionProvider csrfProtectionDefinitionProvider ) {
 
-    this.innerCsrfFilter = new org.springframework.security.web.csrf.CsrfFilter( csrfTokenRepository );
+    this.innerCsrfFilter = new CsrfFilter( csrfTokenRepository );
 
     if ( csrfProtectionDefinitionProvider == null ) {
       throw new IllegalArgumentException( "csrfProtectionDefinitionProvider" );
@@ -63,7 +64,7 @@ public class CsrfGateFilter implements Filter {
   }
 
   @VisibleForTesting
-  org.springframework.security.web.csrf.CsrfFilter getInnerCsrfFilter() {
+  CsrfFilter getInnerCsrfFilter() {
     return this.innerCsrfFilter;
   }
 

@@ -36,7 +36,7 @@ public interface ICsrfProtectionDefinitionProvider {
   /**
    * Adds a listener for changes to the list of protections definitions.
    */
-  void addListener(ICsrfProtectionDefinitionListener listener);
+  void addListener( ICsrfProtectionDefinitionListener listener );
 
   /**
    * Gets the set of allowed origins which can request a token
