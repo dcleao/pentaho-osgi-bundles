@@ -1,0 +1,7 @@
+{
+  "name": "@pentaho/csrf",
+  "version": "${project.version}",
+  "packages": [
+    {"name": "@pentaho/csrf", "main": "service"}
+  ]
+}

@@ -1,0 +1,38 @@
+<assembly xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
+
+  <id>csrf-pentaho-webclient-js-dependencies</id>
+
+  <formats>
+    <format>dir</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+    <fileSet>
+      <directory>${build.javascriptSourceDirectory}/web</directory>
+      <outputDirectory>.</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>${basedir}/src/main/resources-filtered/web</directory>
+      <filtered>true</filtered>
+      <outputDirectory>.</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>${webjars.target.directory}/requirejs/${requirejs.version}</directory>
+      <outputDirectory>.</outputDirectory>
+      <includes>
+        <include>**/require.js</include>
+      </includes>
+      <excludes>
+        <exclude>**/*.json</exclude>
+        <exclude>**/*.md</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+
+</assembly>
