@@ -17,6 +17,7 @@
 package org.pentaho.csrf.filter;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.csrf.ICsrfProtectionDefinitionProvider;
 import org.pentaho.csrf.ICsrfService;
 
 import org.springframework.security.web.csrf.CsrfToken;
@@ -44,6 +45,16 @@ public class CsrfTokenResponseHeaderFilter extends OncePerRequestFilter {
   @VisibleForTesting
   static final String REQUEST_ATTRIBUTE_NAME = "_csrf";
 
+  private ICsrfProtectionDefinitionProvider csrfProtectionDefinitionProvider;
+
+  public CsrfTokenResponseHeaderFilter( ICsrfProtectionDefinitionProvider csrfProtectionDefinitionProvider ) {
+    if ( csrfProtectionDefinitionProvider == null ) {
+      throw new IllegalArgumentException( "csrfProtectionDefinitionProvider" );
+    }
+
+    this.csrfProtectionDefinitionProvider = csrfProtectionDefinitionProvider;
+  }
+
   @Override
   protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response,
                                    FilterChain filterChain ) throws ServletException {
@@ -60,8 +71,8 @@ public class CsrfTokenResponseHeaderFilter extends OncePerRequestFilter {
       response.setHeader( ICsrfService.RESPONSE_HEADER_TOKEN, tokenValue );
     }
 
-    // Add CORS headers.
-    CsrfUtil.setCorsResponseHeaders( request, response );
+    // Maybe add CORS headers.
+    CsrfUtil.setCorsResponseHeaders( request, response, csrfProtectionDefinitionProvider.getCorsAllowOrigins() );
 
     response.setStatus( HttpServletResponse.SC_NO_CONTENT );
   }

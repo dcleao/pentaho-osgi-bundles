@@ -31,26 +31,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings( "PackageAccessibility" )
 class CsrfUtil {
   // region CORS
-  private static final String ORIGIN_HEADER = "origin";
-  private static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
-  private static final String CORS_ALLOW_CREDENTIALS_HEADER = "Access-Control-Allow-Credentials";
-  private static final String CORS_EXPOSE_HEADERS_HEADER = "Access-Control-Expose-Headers";
-  private static final String CORS_EXPOSED_HEADERS = String.join( ",", Arrays.asList(
+  static final String ORIGIN_HEADER = "origin";
+  static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+  static final String CORS_ALLOW_CREDENTIALS_HEADER = "Access-Control-Allow-Credentials";
+  static final String CORS_EXPOSE_HEADERS_HEADER = "Access-Control-Expose-Headers";
+  static final String CORS_EXPOSED_HEADERS = String.join( ",", Arrays.asList(
     ICsrfService.RESPONSE_HEADER_HEADER,
     ICsrfService.RESPONSE_HEADER_PARAM,
     ICsrfService.RESPONSE_HEADER_TOKEN ));
 
-  static void setCorsResponseHeaders( HttpServletRequest request, HttpServletResponse response  ) {
+  static void setCorsResponseHeaders(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    Set<String> allowOrigins ) {
+
     final String origin = request.getHeader( ORIGIN_HEADER );
-    if ( origin != null && origin.length() > 0 ) {
+    if ( isOriginAllowed( origin, allowOrigins ) ) {
       response.setHeader( CORS_ALLOW_ORIGIN_HEADER, origin );
       response.setHeader( CORS_ALLOW_CREDENTIALS_HEADER, "true" );
       response.setHeader( CsrfUtil.CORS_EXPOSE_HEADERS_HEADER, CORS_EXPOSED_HEADERS );
     }
+  }
+
+  private static boolean isOriginAllowed( String origin, Set<String> allowOrigins ) {
+    return origin != null && origin.length() > 0 && allowOrigins != null && allowOrigins.contains( origin );
   }
   // endregion
 

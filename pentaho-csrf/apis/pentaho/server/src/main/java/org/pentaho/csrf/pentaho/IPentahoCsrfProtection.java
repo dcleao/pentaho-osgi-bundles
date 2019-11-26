@@ -44,4 +44,13 @@ public interface IPentahoCsrfProtection extends ICsrfProtectionDefinitionProvide
    * @return {@code true} if enabled for the server and the plugin; {@code false}, otherwise.
    */
   boolean isEnabled( String pluginId );
+
+  /**
+   * Gets a value that indicates if the CSRF token can be obtained
+   * from different origins, via CORS requests.
+   *
+   * @return {@code true} if yes; {@code false}, otherwise.
+   * @see ICsrfProtectionDefinitionProvider#getCorsAllowOrigins()
+   */
+  boolean isCorsAllowed();
 }

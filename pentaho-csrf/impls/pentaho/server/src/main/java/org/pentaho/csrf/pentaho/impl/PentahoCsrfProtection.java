@@ -21,9 +21,13 @@ import org.pentaho.csrf.ICsrfProtectionDefinitionListener;
 import org.pentaho.csrf.pentaho.IPentahoCsrfProtection;
 import org.pentaho.platform.api.engine.IPluginManager;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
+import org.pentaho.platform.util.StringUtil;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @SuppressWarnings( "PackageAccessibility" )
 public class PentahoCsrfProtection implements IPentahoCsrfProtection {
@@ -50,6 +54,11 @@ public class PentahoCsrfProtection implements IPentahoCsrfProtection {
     return isEnabled() && isPluginEnabled( pluginId );
   }
 
+  @Override public boolean isCorsAllowed() {
+    return Boolean.parseBoolean(
+      PentahoSystem.getSystemSetting( PentahoSystem.CORS_REQUESTS_ALLOWED, "false" ) );
+  }
+
   @Override
   public Collection<CsrfProtectionDefinition> getProtectionDefinitions() {
     // Should be empty, when globally disabled, but just in case...
@@ -61,5 +70,21 @@ public class PentahoCsrfProtection implements IPentahoCsrfProtection {
   @Override
   public void addListener( final ICsrfProtectionDefinitionListener listener ) {
     PentahoSystem.get( IPluginManager.class ).addPluginManagerListener( listener::onDefinitionsChanged );
+  }
+
+  @Override
+  public Set<String> getCorsAllowOrigins() {
+    Set<String> allowOriginsSet = new HashSet<>();
+
+    if ( isCorsAllowed() ) {
+      String allowOrigins = PentahoSystem.getSystemSetting(
+        PentahoSystem.CORS_REQUESTS_ALLOWED_DOMAINS, null );
+
+      if ( !StringUtil.isEmpty( allowOrigins ) ) {
+        allowOriginsSet.addAll( Arrays.asList( allowOrigins.split( "\\s*,\\s*" ) ) );
+      }
+    }
+
+    return allowOriginsSet;
   }
 }
