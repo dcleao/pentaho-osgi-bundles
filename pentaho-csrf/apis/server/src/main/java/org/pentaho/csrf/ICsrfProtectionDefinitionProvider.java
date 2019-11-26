@@ -19,6 +19,7 @@
 package org.pentaho.csrf;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * This interface represents a provider of CSRF protection definitions.
@@ -36,4 +37,13 @@ public interface ICsrfProtectionDefinitionProvider {
    * Adds a listener for changes to the list of protections definitions.
    */
   void addListener(ICsrfProtectionDefinitionListener listener);
+
+  /**
+   * Gets the set of allowed origins which can request a token
+   * via the CORS protocol.
+   *
+   * The collection may be empty, in which case CORS requests from different origins
+   * will be disallowed.
+   */
+  Set<String> getCorsAllowOrigins();
 }

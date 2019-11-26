@@ -21,7 +21,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
+import org.pentaho.csrf.ICsrfProtectionDefinitionProvider;
 import org.pentaho.csrf.ICsrfService;
 
 import org.powermock.api.mockito.PowerMockito;
@@ -35,6 +37,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.web.csrf.CsrfToken;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -42,6 +47,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.eq;
 
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( CsrfUtil.class )
@@ -49,6 +55,7 @@ public class CsrfTokenResponseHeaderFilterTest {
 
   private HttpServletRequest mockRequest;
   private HttpServletResponse mockResponse;
+  private ICsrfProtectionDefinitionProvider mockCsrfProtectionDefinitionProvider;
   private CsrfTokenResponseHeaderFilter filter;
   private FilterChain filterChain;
 
@@ -61,8 +68,9 @@ public class CsrfTokenResponseHeaderFilterTest {
 
     this.mockRequest = mock( HttpServletRequest.class );
     this.mockResponse = mock( HttpServletResponse.class );
+    this.mockCsrfProtectionDefinitionProvider = mock( ICsrfProtectionDefinitionProvider.class );
 
-    this.filter = spy( new CsrfTokenResponseHeaderFilter() );
+    this.filter = spy( new CsrfTokenResponseHeaderFilter( this.mockCsrfProtectionDefinitionProvider ) );
     this.filterChain = new MockFilterChain();
   }
 
@@ -101,13 +109,18 @@ public class CsrfTokenResponseHeaderFilterTest {
 
     filter.doFilter( this.mockRequest, this.mockResponse, this.filterChain );
 
-    verify( mockResponse, once() ).setHeader( ICsrfService.RESPONSE_HEADER_HEADER, RESPONSE_HEADER_VALUE );
-    verify( mockResponse, once() ).setHeader( ICsrfService.RESPONSE_HEADER_PARAM, RESPONSE_PARAM_VALUE );
-    verify( mockResponse, once() ).setHeader( ICsrfService.RESPONSE_HEADER_TOKEN, RESPONSE_TOKEN_VALUE );
+    verify( mockResponse, once() ).setHeader( eq( ICsrfService.RESPONSE_HEADER_HEADER ), eq( RESPONSE_HEADER_VALUE ) );
+    verify( mockResponse, once() ).setHeader( eq( ICsrfService.RESPONSE_HEADER_PARAM ), eq( RESPONSE_PARAM_VALUE ) );
+    verify( mockResponse, once() ).setHeader( eq( ICsrfService.RESPONSE_HEADER_TOKEN ), eq( RESPONSE_TOKEN_VALUE ) );
   }
 
   @Test
-  public void testWhenCsrfTokenThenCorsResponseHeaders() throws Exception {
+  public void testWhenCsrfTokenAndCorsOriginAllowedThenCorsResponseHeaders() throws Exception {
+    Set<String> allowOrigins = new HashSet<>();
+    allowOrigins.add( "test-origin" );
+
+    when( this.mockCsrfProtectionDefinitionProvider.getCorsAllowOrigins() ).thenReturn( allowOrigins );
+
     MockFilterConfig cfg = new MockFilterConfig();
 
     filter.init( cfg );
@@ -115,13 +128,36 @@ public class CsrfTokenResponseHeaderFilterTest {
     CsrfToken token = createToken();
 
     when( this.mockRequest.getAttribute( CsrfTokenResponseHeaderFilter.REQUEST_ATTRIBUTE_NAME ) ).thenReturn( token );
-
-    PowerMockito.mockStatic( CsrfUtil.class );
+    when( this.mockRequest.getHeader( CsrfUtil.ORIGIN_HEADER ) ).thenReturn( "test-origin" );
 
     filter.doFilter( this.mockRequest, this.mockResponse, this.filterChain );
 
-    PowerMockito.verifyStatic( once() );
-    CsrfUtil.setCorsResponseHeaders( this.mockRequest, this.mockResponse );
+    verify( this.mockResponse, once() ).setHeader( eq( CsrfUtil.CORS_ALLOW_ORIGIN_HEADER ), eq( "test-origin" ) );
+    verify( this.mockResponse, once() ).setHeader( eq( CsrfUtil.CORS_ALLOW_CREDENTIALS_HEADER ), eq( "true" ) );
+    verify( this.mockResponse, once() ).setHeader( eq( CsrfUtil.CORS_EXPOSE_HEADERS_HEADER ), eq( CsrfUtil.CORS_EXPOSED_HEADERS ) );
+  }
+
+  @Test
+  public void testWhenCsrfTokenAndCorsOriginNotAllowedThenNoCorsResponseHeaders() throws Exception {
+    Set<String> allowOrigins = new HashSet<>();
+    allowOrigins.add( "test-origin" );
+
+    when( this.mockCsrfProtectionDefinitionProvider.getCorsAllowOrigins() ).thenReturn( allowOrigins );
+
+    MockFilterConfig cfg = new MockFilterConfig();
+
+    filter.init( cfg );
+
+    CsrfToken token = createToken();
+
+    when( this.mockRequest.getAttribute( CsrfTokenResponseHeaderFilter.REQUEST_ATTRIBUTE_NAME ) ).thenReturn( token );
+    when( this.mockRequest.getHeader( "origin" ) ).thenReturn( "test-origin2" );
+
+    filter.doFilter( this.mockRequest, this.mockResponse, this.filterChain );
+
+    verify( this.mockResponse, never() ).setHeader( eq( CsrfUtil.CORS_ALLOW_ORIGIN_HEADER ), anyString() );
+    verify( this.mockResponse, never() ).setHeader( eq( CsrfUtil.CORS_ALLOW_CREDENTIALS_HEADER ), anyString() );
+    verify( this.mockResponse, never() ).setHeader( eq( CsrfUtil.CORS_EXPOSE_HEADERS_HEADER ), anyString() );
   }
 
   @Test
