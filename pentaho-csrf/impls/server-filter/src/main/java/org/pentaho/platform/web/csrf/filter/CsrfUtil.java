@@ -1,0 +1,98 @@
+/*!
+ * This program is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License, version 2.1 as published by the Free Software
+ * Foundation.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with this
+ * program; if not, you can obtain a copy at http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ * or from the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
+ */
+
+package org.pentaho.platform.web.csrf.filter;
+
+import org.pentaho.web.security.csrf.CsrfConfiguration;
+import org.pentaho.web.security.csrf.CsrfTokenService;
+import org.pentaho.web.security.RequestMatcherConfiguration;
+
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+@SuppressWarnings( "PackageAccessibility" )
+class CsrfUtil {
+  // region CORS
+  static final String ORIGIN_HEADER = "origin";
+  static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+  static final String CORS_ALLOW_CREDENTIALS_HEADER = "Access-Control-Allow-Credentials";
+  static final String CORS_EXPOSE_HEADERS_HEADER = "Access-Control-Expose-Headers";
+  static final String CORS_EXPOSED_HEADERS = String.join( ",", Arrays.asList(
+    CsrfTokenService.RESPONSE_HEADER_HEADER,
+    CsrfTokenService.RESPONSE_HEADER_PARAM,
+    CsrfTokenService.RESPONSE_HEADER_TOKEN ) );
+
+  static void setCorsResponseHeaders(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    Set<String> allowOrigins ) {
+
+    final String origin = request.getHeader( ORIGIN_HEADER );
+    if ( isOriginAllowed( origin, allowOrigins ) ) {
+      response.setHeader( CORS_ALLOW_ORIGIN_HEADER, origin );
+      response.setHeader( CORS_ALLOW_CREDENTIALS_HEADER, "true" );
+      response.setHeader( CsrfUtil.CORS_EXPOSE_HEADERS_HEADER, CORS_EXPOSED_HEADERS );
+    }
+  }
+
+  private static boolean isOriginAllowed( String origin, Set<String> allowOrigins ) {
+    return origin != null && origin.length() > 0 && allowOrigins != null && allowOrigins.contains( origin );
+  }
+  // endregion
+
+  static RequestMatcher buildCsrfRequestMatcher( Collection<CsrfConfiguration> csrfConfigurations ) {
+
+    List<RequestMatcher> requestMatchers = new ArrayList<>();
+
+    for ( CsrfConfiguration csrfConfiguration : csrfConfigurations ) {
+      collectRequestMatchers( requestMatchers, csrfConfiguration );
+    }
+
+    return requestMatchers.size() > 0 ? new OrRequestMatcher( requestMatchers ) : null;
+  }
+
+  private static void collectRequestMatchers( Collection<RequestMatcher> requestMatchers,
+                                              CsrfConfiguration csrfConfiguration ) {
+
+    Collection<RequestMatcherConfiguration> requestMatcherConfigurations =
+      csrfConfiguration.getProtectedRequestMatchers();
+    if ( requestMatcherConfigurations != null ) {
+      for ( RequestMatcherConfiguration requestMatcherConfiguration : requestMatcherConfigurations ) {
+
+        Collection<String> httpMethods = requestMatcherConfiguration.getMethods();
+        if ( httpMethods == null ) {
+          requestMatchers.add(
+            new RegexRequestMatcher( requestMatcherConfiguration.getPattern(), null, false ) );
+        } else {
+          for ( String httpMethod : requestMatcherConfiguration.getMethods() ) {
+            requestMatchers.add(
+              new RegexRequestMatcher( requestMatcherConfiguration.getPattern(), httpMethod, false ) );
+          }
+        }
+      }
+    }
+  }
+}

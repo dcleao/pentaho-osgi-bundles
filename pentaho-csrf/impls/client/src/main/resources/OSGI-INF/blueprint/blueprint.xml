@@ -5,7 +5,7 @@
             http://www.osgi.org/xmlns/blueprint/v1.0.0
             http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
 
-  <bean id="csrfClientImpl" class="org.pentaho.csrf.client.impl.CsrfClient" />
+  <bean id="csrfClientImpl" class="org.pentaho.platform.web.csrf.client.impl.CsrfTokenServiceClientImpl" />
 
-  <service ref="csrfClientImpl" interface="org.pentaho.csrf.client.ICsrfClient"/>
+  <service ref="csrfClientImpl" interface="org.pentaho.platform.web.csrf.client.CsrfTokenServiceClient"/>
 </blueprint>

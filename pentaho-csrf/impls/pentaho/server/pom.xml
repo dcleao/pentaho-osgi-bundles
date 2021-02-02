@@ -5,9 +5,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.pentaho.csrf</groupId>
+    <groupId>org.pentaho.platform.web.csrf</groupId>
     <artifactId>csrf-impls-pentaho</artifactId>
-    <version>9.0.0.0-SNAPSHOT</version>
+    <version>9.1.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>csrf-pentaho-server-impl</artifactId>
@@ -45,15 +45,20 @@
     </dependency>
 
     <dependency>
-      <groupId>org.pentaho.csrf</groupId>
+      <groupId>org.pentaho.platform.web.csrf</groupId>
       <artifactId>csrf-server-api</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.pentaho.csrf</groupId>
+      <groupId>org.pentaho.platform.web.csrf</groupId>
       <artifactId>csrf-pentaho-server-api</artifactId>
       <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
     </dependency>
 
     <dependency>
