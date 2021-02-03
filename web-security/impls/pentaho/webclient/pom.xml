@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.hitachivantara</groupId>
+    <artifactId>csrf-impls-pentaho</artifactId>
+    <version>9.2.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>csrf-pentaho-webclient-impl</artifactId>
+
+  <packaging>bundle</packaging>
+
+  <name>${project.artifactId}</name>
+  <description>CSRF Pentaho Web Client Implementation</description>
+
+  <properties>
+    <webpackage-root-directory>web</webpackage-root-directory>
+    <!-- Requires at least one element ... -->
+    <js.project.list>requirejs</js.project.list>
+    <build.javascriptReportDirectory>target/js-reports</build.javascriptReportDirectory>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.webjars.npm</groupId>
+      <artifactId>requirejs</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <testResources>
+      <testResource>
+        <targetPath>${project.build.directory}</targetPath>
+        <filtering>true</filtering>
+        <directory>${build.javascriptTestConfigDirectory}</directory>
+        <includes>
+          <include>*</include>
+        </includes>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>bundle-common-ui-platform-plugin</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/dependencies-js-assembly.xml</descriptor>
+              </descriptors>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <appendAssemblyId>false</appendAssemblyId>
+              <finalName>web</finalName>
+              <attach>false</attach>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <Provide-Capability>
+              org.pentaho.webpackage;root=/${webpackage-root-directory}
+            </Provide-Capability>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <!-- Need to "override" the `javascript-test` profile,
+      for a couple of reasons... -->
+  <profiles>
+    <profile>
+      <id>javascript-test-override</id>
+      <activation>
+        <property>
+          <name>!maven.test.skip</name>
+        </property>
+        <file>
+          <!-- Using ${javascriptTestSourceDirectory}, like in
+               the root pom, does not work.
+               The property seems to not have a value when this is
+               evaluated... -->
+          <exists>${basedir}/src/test/javascript</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <!-- Change the karmaConfPath. -->
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>javascript-test_karma</id>
+                <configuration>
+                  <karmaConfPath>${project.build.directory}/${karma.file.config}</karmaConfPath>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <!-- Not using the parent-pom defined `test-javascript` directory to run JS unit-tests.
+                   So disable the execution to not waste time copying files. -->
+              <execution>
+                <id>javascript-test_copy-resources</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>
