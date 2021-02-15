@@ -71,7 +71,6 @@
             <Export-Package>
               org.hitachivantara.security.web.impl.model.*;version=${project.version}
             </Export-Package>
-            <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

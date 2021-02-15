@@ -51,14 +51,21 @@ public class AggregatedRequestSetCorsConfiguration implements CorsConfiguration 
     requestSetConfigs = null;
   }
 
+  /**
+   * @inheritDoc
+   */
   @Nonnull @Override
   public CorsRequestSetConfiguration getRootConfiguration() {
     return compiledRequestSetConfig;
   }
 
-  @Nullable @Override
+  /**
+   * @inheritDoc
+   */
+  @Nonnull @Override
   public CorsRequestSetConfiguration getRequestConfiguration( @Nonnull HttpServletRequest request ) {
-    return compiledRequestSetConfig.getRequestConfiguration( request );
+    CorsRequestSetConfiguration result = compiledRequestSetConfig.getRequestConfiguration( request );
+    return result != null ? result : CorsRequestSetConfigurationPojo.DISABLED;
   }
 
   /**

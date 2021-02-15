@@ -29,8 +29,8 @@ public interface CorsConfiguration {
   /**
    * Gets a value that indicates if CORS requests are enabled at the root level.
    * <p>
-   * This method is equivalent to calling {@link CorsRequestSetConfiguration#isEnabled()}
-   * on the result of {@link #getRootConfiguration()}.
+   * This method is equivalent to calling {@link CorsRequestSetConfiguration#isEnabled()} on the result of {@link
+   * #getRootConfiguration()}.
    *
    * @return {@code true} if enabled; {@code false}, otherwise.
    */
@@ -48,24 +48,21 @@ public interface CorsConfiguration {
 
   /**
    * Gets the effective CORS configuration applicable to a given HTTP request.
-   *
-   * If the root configuration does <em>not apply</em> to the given request,
-   * then {@code null} is returned. Otherwise, the most-specific configuration is tentatively returned.
-   * However, if a disabled ancestor configuration exists along the way, that configuration is returned instead.
-   *
-   * The effective CORS request set configuration is enabled
-   * if all of its parent request sets are enabled.
-   *
+   * <p>
+   * If the root configuration does <em>not apply</em> (the request matcher does not match) to the given request, then a
+   * disabled configuration is returned. Otherwise, the most-specific configuration is tentatively returned. However, if
+   * a disabled ancestor configuration exists along the way, that configuration is returned instead.
+   * <p>
+   * The effective CORS request set configuration is enabled if all of its parent request sets are enabled.
+   * <p>
    * For properties of type {@link java.util.Set}, the values are merged, when set.
-   *
-   * For other properties of scalar types,
-   * {@link CorsRequestSetConfiguration#getMaxAge()} and
-   * {@link CorsRequestSetConfiguration#getAllowCredentials()},
-   * the value of the child request set is used, when set.
+   * <p>
+   * For other properties of scalar types, {@link CorsRequestSetConfiguration#getMaxAge()} and {@link
+   * CorsRequestSetConfiguration#getAllowCredentials()}, the value of the child request set is used, when set.
    *
    * @param request The HTTP request.
    * @return The CORS configuration or {@code null}.
    */
-  @Nullable
+  @Nonnull
   CorsRequestSetConfiguration getRequestConfiguration( @Nonnull HttpServletRequest request );
 }

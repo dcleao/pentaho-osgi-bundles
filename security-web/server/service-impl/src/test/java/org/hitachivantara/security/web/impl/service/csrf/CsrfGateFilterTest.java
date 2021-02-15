@@ -16,8 +16,6 @@
  */
 package org.hitachivantara.security.web.impl.model.csrf;
 
-import org.hitachivantara.security.web.api.model.matcher.RequestMatcherConfiguration;
-import org.hitachivantara.security.web.api.csrfold.CsrfProtectedRequestSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

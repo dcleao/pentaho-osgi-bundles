@@ -15,7 +15,7 @@
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.model.csrf;
+package org.hitachivantara.security.web.impl.service.csrf;
 
 import org.springframework.security.web.csrf.CsrfToken;
 
@@ -73,9 +73,6 @@ public class CsrfTokenService {
 
   @Context
   HttpServletRequest request;
-
-  public CsrfTokenService() {
-  }
 
   @GET
   @Path( "/" )

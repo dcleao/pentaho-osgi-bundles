@@ -15,11 +15,12 @@
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.model.csrf;
+package org.hitachivantara.security.web.impl.service.csrf;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.web.csrf.CsrfToken;
 
@@ -30,7 +31,6 @@ import javax.ws.rs.core.Response;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @RunWith( PowerMockRunner.class )
@@ -46,7 +46,7 @@ public class CsrfTokenServiceTest {
   @Before
   public void setUp() {
     mockRequest = mock( HttpServletRequest.class );
-    csrfTokeResource = spy( new CsrfTokenService() );
+    csrfTokeResource = Mockito.spy( new CsrfTokenService() );
   }
 
   private static CsrfToken createToken() {

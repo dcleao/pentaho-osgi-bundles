@@ -14,7 +14,7 @@
  *
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
-package org.hitachivantara.security.web.impl.model.csrf;
+package org.hitachivantara.security.web.impl.service.csrf;
 
 import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.springframework.security.web.access.AccessDeniedHandler;
