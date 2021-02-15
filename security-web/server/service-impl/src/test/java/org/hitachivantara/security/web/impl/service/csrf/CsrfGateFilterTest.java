@@ -14,218 +14,119 @@
  *
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
-package org.hitachivantara.security.web.impl.model.csrf;
+package org.hitachivantara.security.web.impl.service.csrf;
 
+import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.mock.web.MockFilterChain;
-import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.verifyNew;
 
 @RunWith( PowerMockRunner.class )
+@PrepareForTest( { CsrfFilter.class, CsrfGateFilter.class } )
 public class CsrfGateFilterTest {
 
+  // Tested subject
   private CsrfGateFilter csrfGateFilter;
-  @Mock private CsrfTokenRepository csrfTokenRepository;
-  @Mock private ICsrfConfiguration csrfConfigProvider;
 
-  private FilterConfig filterConfig;
+  // Mocks
+  private CsrfFilter csrfSpringFilter;
+  private CsrfTokenRepository csrfTokenRepository;
+  private CsrfConfiguration csrfConfiguration;
 
   @Before
-  public void setUp() {
-    csrfGateFilter = new CsrfGateFilter( csrfTokenRepository, csrfConfigProvider );
-    filterConfig = new MockFilterConfig();
-  }
+  public void setUp() throws Exception {
 
-  private CsrfProtectedRequestSet getNonEmptyCsrfConfiguration() {
-    return new CsrfProtectedRequestSet(
-      Collections.singletonList(
-        new RequestMatcherConfiguration( "regex", "url" ) ) );
+    csrfSpringFilter = PowerMockito.mock( CsrfFilter.class );
+    csrfTokenRepository = PowerMockito.mock( CsrfTokenRepository.class );
+    csrfConfiguration = PowerMockito.mock( CsrfConfiguration.class );
+
+    PowerMockito.whenNew( CsrfFilter.class )
+      .withArguments( any( CsrfTokenRepository.class ) )
+      .thenReturn( csrfSpringFilter );
+
+    csrfGateFilter = new CsrfGateFilter( csrfTokenRepository, csrfConfiguration );
   }
 
   @Test
-  public void testConstructor() {
-    assertNotNull( csrfGateFilter.getInnerFilter() );
-    // No way to test that csrfTokenRepository was the received repository.
+  public void testConstructor() throws Exception {
+
+    verifyNew( CsrfFilter.class ).withArguments( csrfTokenRepository );
+
+    assertEquals( csrfSpringFilter, csrfGateFilter.getInnerFilter() );
+
+    // Test that it was a method reference of Csrfconfiguration#isEnabled( RequestMatcher )
+    // that was passed to CsrfFilter#setRequireCsrfProtectionMatcher( . ).
+
+    ArgumentCaptor<RequestMatcher> captor = ArgumentCaptor.forClass( RequestMatcher.class );
+    verify( csrfSpringFilter, times( 1 ) )
+      .setRequireCsrfProtectionMatcher( captor.capture() );
+
+    HttpServletRequest mockRequest = PowerMockito.mock( HttpServletRequest.class );
+
+    RequestMatcher matcher = captor.getValue();
+    matcher.matches( mockRequest );
+
+    verify( csrfConfiguration, times( 1 ) )
+      .isEnabled( mockRequest );
   }
 
   @Test
   public void testDestroy() {
-
-    // Coverage. No way to test that innerCsrfFilter.destroy() was called.
-
     csrfGateFilter.destroy();
+    verify( csrfSpringFilter, times( 1 ) )
+      .destroy();
   }
 
   @Test
   public void testSetAccessDeniedHandler() {
 
-    // Coverage. No way to test that innerCsrfFilter.setAccessDeniedHandler( . ) was called.
+    AccessDeniedHandler accessDeniedHandler = PowerMockito.mock( AccessDeniedHandler.class );
+    csrfGateFilter.setAccessDeniedHandler( accessDeniedHandler );
 
-    csrfGateFilter.setAccessDeniedHandler( Mockito.mock( AccessDeniedHandler.class ) );
+    verify( csrfSpringFilter, times( 1 ) )
+      .setAccessDeniedHandler( accessDeniedHandler );
   }
 
   @Test
-  public void testInitWithCsrfProtectionDisabled() throws Exception {
+  public void testInit() throws Exception {
 
-    when( csrfConfigProvider.getCsrfConfiguration() ).thenReturn( new CsrfProtectedRequestSet() );
-
-    assertFalse( csrfGateFilter.isInitialized() );
+    FilterConfig filterConfig = PowerMockito.mock( FilterConfig.class );
 
     csrfGateFilter.init( filterConfig );
 
-    assertEquals( filterConfig, csrfGateFilter.getInnerFilter().getFilterConfig() );
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertFalse( csrfGateFilter.isEnabled() );
-
-    verify( csrfConfigProvider ).registerChangeListener( any( Runnable.class ) );
+    verify( csrfSpringFilter, times( 1 ) )
+      .init( filterConfig );
   }
 
   @Test
-  public void testInitWithCsrfProtectionEnabled() throws Exception {
+  public void testDoFilter() throws Exception {
 
-    when( csrfConfigProvider.getCsrfConfiguration() ).thenReturn( getNonEmptyCsrfConfiguration() );
-
-    assertFalse( csrfGateFilter.isInitialized() );
-
-    csrfGateFilter.init( filterConfig );
-
-    assertEquals( filterConfig, csrfGateFilter.getInnerFilter().getFilterConfig() );
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
-  }
-
-  @Test
-  public void testCsrfConfigurationChangeCausesReload() throws Exception {
-
-    // Setup
-    ArgumentCaptor<Runnable> listenerCapture = ArgumentCaptor.forClass( Runnable.class );
-
-    doNothing().when( csrfConfigProvider ).registerChangeListener( listenerCapture.capture() );
-
-    when( csrfConfigProvider.getCsrfConfiguration() ).thenReturn( getNonEmptyCsrfConfiguration() );
-
-    csrfGateFilter.init( filterConfig );
-
-    verify( csrfConfigProvider, times( 1 ) ).getCsrfConfiguration();
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
-
-    // Test Simulate reload.
-    listenerCapture.getValue().run();
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
-
-    verify( csrfConfigProvider, times( 2 ) ).getCsrfConfiguration();
-  }
-
-  @Test
-  public void testDoFilterWhenInitializedAndCsrfProtectionDisabled() throws Exception {
-
-    // Setup
-    when( csrfConfigProvider.getCsrfConfiguration() ).thenReturn( new CsrfProtectedRequestSet() );
-
-    csrfGateFilter.init( filterConfig );
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertFalse( csrfGateFilter.isEnabled() );
-
-    // Test
-    HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
-    HttpServletResponse mockResponse = Mockito.mock( HttpServletResponse.class );
-    FilterChain filterChain = new MockFilterChain();
+    HttpServletRequest mockRequest = PowerMockito.mock( HttpServletRequest.class );
+    HttpServletResponse mockResponse = PowerMockito.mock( HttpServletResponse.class );
+    FilterChain filterChain = PowerMockito.mock( FilterChain.class );
 
     csrfGateFilter.doFilter( mockRequest, mockResponse, filterChain );
-  }
 
-  @Test
-  public void testDoFilterWhenInitializedAndCsrfProtectionEnabled() throws Exception {
-
-    // Setup
-    when( csrfConfigProvider.getCsrfConfiguration() ).thenReturn( getNonEmptyCsrfConfiguration() );
-
-    HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
-    HttpServletResponse mockResponse = Mockito.mock( HttpServletResponse.class );
-    FilterChain filterChain = new MockFilterChain();
-
-    CsrfToken mockCsrfToken = mock( CsrfToken.class );
-    when( mockCsrfToken.getParameterName() ).thenReturn( "_token_" );
-    when( csrfTokenRepository.loadToken( mockRequest ) ).thenReturn( mockCsrfToken );
-
-    csrfGateFilter.init( filterConfig );
-
-    verify( csrfConfigProvider, times( 1 ) ).getCsrfConfiguration();
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
-
-    // Test
-    csrfGateFilter.doFilter( mockRequest, mockResponse, filterChain );
-
-    verify( csrfConfigProvider, times( 1 ) ).getCsrfConfiguration();
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
-  }
-
-  @Test
-  public void testDoFilterWhileReloadAndCsrfProtectionEnabled() throws Exception {
-
-    // Setup
-    when( csrfConfigProvider.getCsrfConfiguration() ).thenReturn( getNonEmptyCsrfConfiguration() );
-
-    HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
-    HttpServletResponse mockResponse = Mockito.mock( HttpServletResponse.class );
-    FilterChain filterChain = new MockFilterChain();
-
-    CsrfToken mockCsrfToken = mock( CsrfToken.class );
-    when( mockCsrfToken.getParameterName() ).thenReturn( "_token_" );
-    when( csrfTokenRepository.loadToken( mockRequest ) ).thenReturn( mockCsrfToken );
-
-    csrfGateFilter.init( filterConfig );
-
-    verify( csrfConfigProvider, times( 1 ) ).getCsrfConfiguration();
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
-
-    // Simulate to be within doInit(), in another thread...
-    csrfGateFilter.setIsInitialized( false );
-
-    // Test
-    csrfGateFilter.doFilter( mockRequest, mockResponse, filterChain );
-
-    verify( csrfConfigProvider, times( 2 ) ).getCsrfConfiguration();
-
-    assertTrue( csrfGateFilter.isInitialized() );
-    assertTrue( csrfGateFilter.isEnabled() );
+    verify( csrfSpringFilter, times( 1 ) )
+      .doFilter( mockRequest, mockResponse, filterChain );
   }
 }

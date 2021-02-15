@@ -20,7 +20,7 @@
   <modules>
     <module>api</module>
     <module>model-impl</module>
-    <!--<module>service-impl</module>-->
+    <module>service-impl</module>
   </modules>
 
 </project>

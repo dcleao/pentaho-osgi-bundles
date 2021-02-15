@@ -21,6 +21,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 
+import javax.annotation.Nonnull;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -32,9 +33,10 @@ import java.util.Objects;
 
 public class CsrfGateFilter implements Filter {
 
+  @Nonnull
   private final CsrfFilter innerFilter;
 
-  public CsrfGateFilter( CsrfTokenRepository csrfTokenRepository, CsrfConfiguration configuration ) {
+  public CsrfGateFilter( @Nonnull CsrfTokenRepository csrfTokenRepository, @Nonnull CsrfConfiguration configuration ) {
 
     Objects.requireNonNull( configuration );
 
@@ -43,6 +45,7 @@ public class CsrfGateFilter implements Filter {
   }
 
   // Testing support
+  @Nonnull
   CsrfFilter getInnerFilter() {
     return innerFilter;
   }
@@ -52,17 +55,18 @@ public class CsrfGateFilter implements Filter {
    *
    * @param accessDeniedHandler The {@link AccessDeniedHandler}.
    */
-  public void setAccessDeniedHandler( AccessDeniedHandler accessDeniedHandler ) {
+  public void setAccessDeniedHandler( @Nonnull AccessDeniedHandler accessDeniedHandler ) {
     innerFilter.setAccessDeniedHandler( accessDeniedHandler );
   }
 
   @Override
-  public void init( FilterConfig filterConfig ) throws ServletException {
+  public void init( @Nonnull FilterConfig filterConfig ) throws ServletException {
     innerFilter.init( filterConfig );
   }
 
   @Override
-  public void doFilter( ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain )
+  public void doFilter( @Nonnull ServletRequest servletRequest, @Nonnull ServletResponse servletResponse,
+                        @Nonnull FilterChain filterChain )
     throws IOException, ServletException {
     innerFilter.doFilter( servletRequest, servletResponse, filterChain );
   }
