@@ -21,6 +21,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.web.csrf.CsrfToken;
 
@@ -30,13 +32,19 @@ import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( PowerMockRunner.class )
+@PrepareForTest( { Response.class, Response.ResponseBuilder.class } )
 public class CsrfTokenServiceTest {
 
   private HttpServletRequest mockRequest;
+  private Response mockResponse;
+  private Response.ResponseBuilder mockResponseBuilder;
   private CsrfTokenService csrfTokeResource;
 
   private static final String RESPONSE_HEADER_VALUE = "HEADER_NAME";
@@ -45,6 +53,19 @@ public class CsrfTokenServiceTest {
 
   @Before
   public void setUp() {
+    PowerMockito.mockStatic( Response.class );
+
+    mockResponseBuilder = PowerMockito.mock( Response.ResponseBuilder.class );
+    mockResponse = PowerMockito.mock( Response.class );
+    when( mockResponse.getStatus() )
+      .thenReturn( HttpServletResponse.SC_NO_CONTENT );
+
+    PowerMockito.when( Response.noContent() )
+      .thenReturn( mockResponseBuilder );
+
+    when( mockResponseBuilder.build() )
+      .thenReturn( mockResponse );
+
     mockRequest = mock( HttpServletRequest.class );
     csrfTokeResource = Mockito.spy( new CsrfTokenService() );
   }
@@ -60,37 +81,54 @@ public class CsrfTokenServiceTest {
     return token;
   }
 
+  @Test
   public void testWhenNoCsrfTokenInRequest() {
 
     csrfTokeResource.request = mockRequest;
 
     Response response = csrfTokeResource.getToken( "url" );
 
-    assertNull( response.getHeaderString( CsrfTokenService.RESPONSE_HEADER_HEADER ) );
-    assertNull( response.getHeaderString( CsrfTokenService.RESPONSE_HEADER_PARAM ) );
-    assertNull( response.getHeaderString( CsrfTokenService.RESPONSE_HEADER_TOKEN ) );
+    assertEquals( mockResponse, response );
+
+    verify( mockResponseBuilder, times( 1 ) )
+      .build();
+
+    verify( mockResponseBuilder, times( 0 ) )
+      .header( any( String.class ), any( String.class ) );
   }
 
   @Test
   public void testWhenCsrfTokenThenCsrfResponseHeaders() {
 
     CsrfToken token = createToken();
-    when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) ).thenReturn( token );
+    when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) )
+      .thenReturn( token );
 
     csrfTokeResource.request = mockRequest;
 
     Response response = csrfTokeResource.getToken( "url" );
 
-    assertEquals( RESPONSE_HEADER_VALUE, response.getHeaderString( CsrfTokenService.RESPONSE_HEADER_HEADER ) );
-    assertEquals( RESPONSE_PARAM_VALUE, response.getHeaderString( CsrfTokenService.RESPONSE_HEADER_PARAM ) );
-    assertEquals( RESPONSE_TOKEN_VALUE, response.getHeaderString( CsrfTokenService.RESPONSE_HEADER_TOKEN ) );
+    assertEquals( mockResponse, response );
+
+    verify( mockResponseBuilder, times( 1 ) )
+      .build();
+
+    verify( mockResponseBuilder, times( 1 ) )
+      .header( CsrfTokenService.RESPONSE_HEADER_HEADER, RESPONSE_HEADER_VALUE );
+
+    verify( mockResponseBuilder, times( 1 ) )
+      .header( CsrfTokenService.RESPONSE_HEADER_PARAM, RESPONSE_PARAM_VALUE );
+
+    verify( mockResponseBuilder, times( 1 ) )
+      .header( CsrfTokenService.RESPONSE_HEADER_TOKEN, RESPONSE_TOKEN_VALUE );
   }
 
   @Test
   public void testStatusCodeNoContent() {
 
     CsrfToken token = createToken();
-    when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) ).thenReturn( token );
+    when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) )
+      .thenReturn( token );
 
     csrfTokeResource.request = mockRequest;
 
