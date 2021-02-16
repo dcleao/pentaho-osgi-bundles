@@ -23,6 +23,7 @@ import org.hitachivantara.security.web.api.model.matcher.RequestMatcher;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -97,13 +98,21 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
     this.parentName = other.getParentName();
     this.isEnabled = other.isEnabled();
     this.requestMatcher = other.getRequestMatcher();
-    this.allowedOrigins = other.getAllowedOrigins();
-    this.allowedHeaders = other.getAllowedHeaders();
-    this.allowedMethods = other.getAllowedMethods();
+    this.allowedOrigins = copySet( other.getAllowedOrigins() );
+    this.allowedHeaders = copySet( other.getAllowedHeaders() );
+    this.allowedMethods = copySet( other.getAllowedMethods() );
+    this.exposedHeaders = copySet( other.getExposedHeaders() );
+
+    // Boolean and Long are immutable.
     this.allowCredentials = other.getAllowCredentials();
     this.maxAge = other.getMaxAge();
-    this.exposedHeaders = other.getExposedHeaders();
   }
+
+  @Nullable
+  private Set<String> copySet( @Nullable Set<String> value ) {
+    return value != null ? new HashSet<>( value ) : null;
+  }
+
 
   /**
    * @inheritDoc
