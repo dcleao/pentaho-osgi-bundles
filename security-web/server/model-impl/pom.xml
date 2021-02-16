@@ -17,19 +17,20 @@
   <description>Web Security Server Model Implementation</description>
 
   <dependencies>
-    <!-- OSGi BEGIN -->
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
-    </dependency>
-    <!-- OSGi END -->
-
+    <!-- Other Modules-->
     <dependency>
       <groupId>org.hitachivantara</groupId>
       <artifactId>security-web-server-api</artifactId>
       <version>${project.version}</version>
     </dependency>
 
+    <!-- OSGi -->
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+
+    <!-- JSR-305 -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
@@ -42,19 +43,30 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Web -->
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
+
+    <!-- Spring - needed for the Spring configuration adapters -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-web</artifactId>
+      <scope>provided</scope>
     </dependency>
 
+    <!-- TEST -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>

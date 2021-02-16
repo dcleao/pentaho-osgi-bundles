@@ -19,12 +19,11 @@
 
 
   <dependencies>
-    <!-- OSGi BEGIN -->
+    <!-- OSGi -->
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
-    <!-- OSGi END -->
 
     <dependency>
       <groupId>pentaho</groupId>

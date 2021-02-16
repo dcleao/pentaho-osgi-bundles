@@ -101,7 +101,8 @@ public final class AggregatedRequestSetCsrfConfiguration implements CsrfConfigur
    *
    * @param requestSetConfig The protected request configuration that was added or changed (mutated).
    */
-  public final synchronized void requestSetConfigurationDidBind( @Nonnull CsrfRequestSetConfiguration requestSetConfig ) {
+  public final synchronized void requestSetConfigurationDidBind(
+    @Nonnull CsrfRequestSetConfiguration requestSetConfig ) {
     compileConfiguration( copyProtectedRequestConfigs() );
   }
 
@@ -111,7 +112,8 @@ public final class AggregatedRequestSetCsrfConfiguration implements CsrfConfigur
    *
    * @param requestSetConfig The protected request configuration that <em>will</em> be removed.
    */
-  public final synchronized void requestSetConfigurationWillUnbind( @Nonnull CsrfRequestSetConfiguration requestSetConfig ) {
+  public final synchronized void requestSetConfigurationWillUnbind(
+    @Nonnull CsrfRequestSetConfiguration requestSetConfig ) {
 
     List<CsrfRequestSetConfiguration> protectedRequestConfigsCopy = copyProtectedRequestConfigs();
     if ( protectedRequestConfigsCopy != null ) {
@@ -169,5 +171,45 @@ public final class AggregatedRequestSetCsrfConfiguration implements CsrfConfigur
       .collect( Collectors.toList() );
 
     return RequestMatcher.createOr( requestMatchers );
+  }
+
+  /**
+   * This class is an immutable implementation of the {@link CsrfConfiguration} interface, which evaluates the requests
+   * that require CSRF protection based on a given request matcher.
+   */
+  private static class SimpleCsrfConfiguration implements CsrfConfiguration {
+
+    private final boolean isEnabled;
+
+    @Nonnull
+    private final RequestMatcher requestMatcher;
+
+    /**
+     * Creates a CSRF configuration with a given enabled status and for a given request matcher.
+     *
+     * @param isEnabled      Indicates if CSRF protection is enabled for the requests identified by {@code
+     *                       requestMatcher}.
+     * @param requestMatcher The request matcher which identifies protected requests.
+     */
+    public SimpleCsrfConfiguration( boolean isEnabled, RequestMatcher requestMatcher ) {
+      this.isEnabled = isEnabled;
+      this.requestMatcher = requestMatcher != null ? requestMatcher : RequestMatcher.NONE;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public final boolean isEnabled() {
+      return isEnabled;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public boolean isEnabled( @Nonnull HttpServletRequest request ) {
+      return requestMatcher.test( request );
+    }
   }
 }

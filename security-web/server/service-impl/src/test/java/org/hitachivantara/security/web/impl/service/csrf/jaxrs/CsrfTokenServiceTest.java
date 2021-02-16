@@ -15,7 +15,7 @@
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.service.csrf;
+package org.hitachivantara.security.web.impl.service.csrf.jaxrs;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;

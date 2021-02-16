@@ -19,12 +19,11 @@
   <description>CSRF REST Client - JAX-RS Implementation</description>
 
   <dependencies>
-    <!-- OSGi BEGIN -->
+    <!-- OSGi -->
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
-    <!-- OSGi END -->
 
     <dependency>
       <groupId>javax.ws.rs</groupId>
