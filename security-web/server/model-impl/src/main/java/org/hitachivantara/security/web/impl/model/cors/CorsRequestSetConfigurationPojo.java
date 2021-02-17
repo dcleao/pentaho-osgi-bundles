@@ -162,7 +162,7 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
    * @param requestMatcher The request matcher; if {@code null}, defaults to {@link RequestMatcher#ALL}.
    */
   public void setRequestMatcher( @Nullable RequestMatcher requestMatcher ) {
-    this.requestMatcher = requestMatcher != null ? RequestMatcher.ALL : RequestMatcher.NONE;
+    this.requestMatcher = requestMatcher != null ? requestMatcher : RequestMatcher.NONE;
   }
 
   /**

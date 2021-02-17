@@ -166,13 +166,9 @@ public class AggregatedRequestSetCorsConfiguration implements CorsConfiguration 
       // Phase 3.
       buildTree();
 
-      // Phase 4.
-      // Special case in which all configs were invalid and removed (e.g. cycle including root).
-      if ( configs.isEmpty() ) {
-        return CompiledCorsRequestSetConfigurationPojo.DISABLED;
-      }
+      // At least the root node still exists.
 
-      // Phase 5.
+      // Phase 4.
       root.propagateEffectiveConfig( null );
 
       return root;
@@ -300,6 +296,7 @@ public class AggregatedRequestSetCorsConfiguration implements CorsConfiguration 
 
       } else if ( ROOT_NAME.equals( name ) ) {
         // Root must have null parent.
+        // This also impedes a cycle forming which includes the root.
         setParentName( null );
       }
     }

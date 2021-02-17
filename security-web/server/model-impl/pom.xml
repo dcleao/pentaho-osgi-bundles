@@ -75,6 +75,13 @@
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
     </dependency>
+
+    <!-- Needed for slf4j not to complain at test time -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

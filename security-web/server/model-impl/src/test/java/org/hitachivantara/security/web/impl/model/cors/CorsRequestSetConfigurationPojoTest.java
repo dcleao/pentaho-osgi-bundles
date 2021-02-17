@@ -31,6 +31,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class CorsRequestSetConfigurationPojoTest {
@@ -146,6 +147,7 @@ public class CorsRequestSetConfigurationPojoTest {
 
     assertEquals( other.getName(), config.getName() );
     assertEquals( other.getParentName(), config.getParentName() );
+    assertEquals( other.getRequestMatcher(), config.getRequestMatcher() );
     assertEquals( other.isEnabled(), config.isEnabled() );
     assertEquals( other.getMaxAge(), config.getMaxAge() );
     assertEquals( other.getAllowCredentials(), config.getAllowCredentials() );
@@ -199,6 +201,21 @@ public class CorsRequestSetConfigurationPojoTest {
     config.setEnabled( false );
 
     assertFalse( config.isEnabled() );
+  }
+
+  @Test
+  public void testSetRequestMatcherWorks() {
+
+    CorsRequestSetConfigurationPojo config = new CorsRequestSetConfigurationPojo();
+
+    RequestMatcher matcher = request -> true;
+    config.setRequestMatcher( matcher );
+
+    assertSame( matcher, config.getRequestMatcher() );
+
+    config.setRequestMatcher( null );
+
+    assertSame( RequestMatcher.NONE, config.getRequestMatcher() );
   }
 
   @Test
