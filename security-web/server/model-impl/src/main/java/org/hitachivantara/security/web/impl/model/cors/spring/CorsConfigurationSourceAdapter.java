@@ -18,6 +18,9 @@
 
 package org.hitachivantara.security.web.impl.model.cors.spring;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.hitachivantara.security.web.api.model.cors.CorsConfiguration;
 import org.hitachivantara.security.web.api.model.cors.CorsRequestSetConfiguration;
 
@@ -26,31 +29,39 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings( "UnstableApiUsage" )
 public class CorsConfigurationSourceAdapter implements org.springframework.web.cors.CorsConfigurationSource {
 
   @Nonnull
   private final CorsConfiguration configuration;
 
+  // Not using a Map directly to avoid buildup of the cached Spring CorsConfiguration instances.
+  // If the source CorsConfiguration would be "refreshed" and started returning different instances of
+  // CorsRequestSetConfiguration for the same requests. An OSGi baked configuration can cause this.
   @Nonnull
-  private final Map<CorsRequestSetConfiguration, org.springframework.web.cors.CorsConfiguration> configMap;
+  private final LoadingCache<CorsRequestSetConfiguration, org.springframework.web.cors.CorsConfiguration> configCache;
 
   public CorsConfigurationSourceAdapter( @Nonnull CorsConfiguration configuration ) {
     requireNonNull( configuration );
     this.configuration = configuration;
-    this.configMap = new ConcurrentHashMap<>();
+
+    this.configCache = CacheBuilder.newBuilder()
+      .weakKeys()
+      .build( new CacheLoader<CorsRequestSetConfiguration, org.springframework.web.cors.CorsConfiguration>() {
+        @Override
+        public org.springframework.web.cors.CorsConfiguration load( @Nonnull CorsRequestSetConfiguration config ) {
+          return computeSpringCorsConfiguration( config );
+        }
+      } );
   }
 
   @Override
   public org.springframework.web.cors.CorsConfiguration getCorsConfiguration( @Nonnull HttpServletRequest request ) {
-    return configMap.computeIfAbsent(
-      configuration.getRequestConfiguration( request ),
-      CorsConfigurationSourceAdapter::computeSpringCorsConfiguration );
+    return configCache.getUnchecked( configuration.getRequestConfiguration( request ) );
   }
 
   @Nullable

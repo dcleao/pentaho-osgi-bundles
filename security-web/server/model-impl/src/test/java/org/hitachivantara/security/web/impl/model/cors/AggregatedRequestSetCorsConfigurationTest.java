@@ -72,7 +72,6 @@ public class AggregatedRequestSetCorsConfigurationTest {
   private static final String GRAND_CHILD_URL_D = "R/C/D";
   private static final String GRAND_CHILD_URL_E = "R/C/E";
   private static final String GREAT_GRAND_CHILD_URL_F = "R/C/E/F";
-  private static final String EXTERNAL_URL_X = "X";
 
   private static boolean urlMatches( @Nonnull String pattern, @Nonnull String url ) {
     // Basic "prefix" pattern
