@@ -16,7 +16,7 @@
  * Copyright (c) 2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.model.cors.spring;
+package org.hitachivantara.security.web.impl.model.spring;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

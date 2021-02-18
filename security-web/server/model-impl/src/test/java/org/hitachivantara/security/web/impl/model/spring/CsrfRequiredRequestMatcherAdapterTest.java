@@ -16,7 +16,7 @@
  * Copyright (c) 2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.model.csrf.spring;
+package org.hitachivantara.security.web.impl.model.spring;
 
 import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.junit.Test;
@@ -31,7 +31,7 @@ import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-public class RequiredRequestMatcherAdapterTest {
+public class CsrfRequiredRequestMatcherAdapterTest {
 
   private static final String PROTECTED_URL_A = "A";
   private static final String PROTECTED_URL_B = "B";
@@ -65,7 +65,7 @@ public class RequiredRequestMatcherAdapterTest {
 
     CsrfConfiguration enabledConfig = getEnabledSampleConfig();
 
-    RequiredRequestMatcherAdapter adapter = new RequiredRequestMatcherAdapter( enabledConfig );
+    CsrfRequiredRequestMatcherAdapter adapter = new CsrfRequiredRequestMatcherAdapter( enabledConfig );
 
     assertTrue( adapter.matches( createMockRequest( PROTECTED_URL_A ) ) );
   }
@@ -75,7 +75,7 @@ public class RequiredRequestMatcherAdapterTest {
 
     CsrfConfiguration enabledConfig = getEnabledSampleConfig();
 
-    RequiredRequestMatcherAdapter adapter = new RequiredRequestMatcherAdapter( enabledConfig );
+    CsrfRequiredRequestMatcherAdapter adapter = new CsrfRequiredRequestMatcherAdapter( enabledConfig );
 
     assertFalse( adapter.matches( createMockRequest( UNPROTECTED_URL ) ) );
   }

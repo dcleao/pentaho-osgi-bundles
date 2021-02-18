@@ -16,12 +16,10 @@
  * Copyright (c) 2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.model.cors.spring;
+package org.hitachivantara.security.web.impl.model.spring;
 
 import org.hitachivantara.security.web.api.model.cors.CorsConfiguration;
 import org.hitachivantara.security.web.api.model.cors.CorsRequestSetConfiguration;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;

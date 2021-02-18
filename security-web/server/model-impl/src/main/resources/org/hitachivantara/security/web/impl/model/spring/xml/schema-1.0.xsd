@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:swm="http://www.hitachivantara.org/schema/security/web/model/spring"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            targetNamespace="http://www.hitachivantara.org/schema/security/web/model/spring"
+            elementFormDefault="qualified">
+
+  <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+
+  <!-- region Request Matchers -->
+  <!--
+    Example:
+    <swm:or-request-matcher>
+      <swm:regex-request-matcher pattern="^/api/user-settings/.*" methods="GET POST" />
+      ...
+    </swm:or-request-matcher>
+  -->
+  <xsd:element name="or-request-matcher" type="swm:TOrRequestMatcher" id="or-request-matcher"/>
+
+  <!--
+    Example:
+    <swm:regex-request-matcher pattern="^/api/user-settings/.*" methods="GET POST" />
+  -->
+  <xsd:element name="regex-request-matcher" type="swm:TRegexRequestMatcher" id="regex-request-matcher"/>
+
+  <xsd:group name="requestMatcherElements">
+    <xsd:choice>
+      <xsd:element ref="or-request-matcher"/>
+      <xsd:element ref="regex-request-matcher"/>
+    </xsd:choice>
+  </xsd:group>
+
+  <xsd:complexType name="TAbstractRequestMatcher" abstract="true">
+    <xsd:complexContent>
+      <xsd:extension base="beans:identifiedType">
+        <!-- Copied from Spring beans schema -->
+        <xsd:attribute name="name" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation><![CDATA[
+  Can be used to create one or more aliases illegal in an (XML) id.
+  Multiple aliases can be separated by any number of spaces, commas,
+  or semi-colons (or indeed any mixture of the three).
+        ]]></xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="TRegexRequestMatcher">
+    <xsd:complexContent>
+      <xsd:extension base="swm:TAbstractRequestMatcher">
+        <xsd:attribute name="pattern" type="xsd:string" use="required"/>
+        <xsd:attribute name="methods" type="swm:THttpMethods"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="TOrRequestMatcher">
+    <xsd:complexContent>
+      <xsd:extension base="swm:TAbstractRequestMatcher">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+          <xsd:group ref="swm:requestMatcherElements"/>
+          <xsd:any/>
+        </xsd:choice>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <!--
+    Examples:
+    POST
+    GET
+  -->
+  <xsd:simpleType name="THttpMethod">
+    <xsd:union>
+      <!-- Known Methods -->
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="GET"/>
+          <xsd:enumeration value="HEAD"/>
+          <xsd:enumeration value="POST"/>
+          <xsd:enumeration value="PUT"/>
+          <xsd:enumeration value="DELETE"/>
+          <xsd:enumeration value="OPTIONS"/>
+          <xsd:enumeration value="TRACE"/>
+          <xsd:enumeration value="PATCH"/>
+          <xsd:enumeration value="CONNECT"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <!-- Arbitrary upper case VALUE -->
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="[A-Z]+"/>
+          <xsd:whiteSpace value="replace"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:union>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="THttpMethods">
+    <xsd:restriction>
+      <xsd:simpleType>
+        <xsd:list itemType="swm:THttpMethod"/>
+      </xsd:simpleType>
+      <xsd:minLength value="0"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- endregion Request Matchers -->
+
+</xsd:schema>

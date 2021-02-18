@@ -16,7 +16,7 @@
  * Copyright (c) 2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.model.csrf.spring;
+package org.hitachivantara.security.web.impl.model.spring;
 
 import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -30,12 +30,12 @@ import static java.util.Objects.requireNonNull;
  * A Spring {@link RequestMatcher} implementation that adapts a given {@link CsrfConfiguration} to a protection required
  * request matcher.
  */
-public class RequiredRequestMatcherAdapter implements RequestMatcher {
+public class CsrfRequiredRequestMatcherAdapter implements RequestMatcher {
 
   @Nonnull
   private final CsrfConfiguration configuration;
 
-  public RequiredRequestMatcherAdapter( @Nonnull CsrfConfiguration configuration ) {
+  public CsrfRequiredRequestMatcherAdapter( @Nonnull CsrfConfiguration configuration ) {
 
     requireNonNull( configuration );
 

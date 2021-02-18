@@ -1,0 +1,1 @@
+http\://www.hitachivantara.org/schema/security/web/model/spring=org.hitachivantara.security.web.impl.model.spring.xml.WebSecurityModelNamespaceHandler

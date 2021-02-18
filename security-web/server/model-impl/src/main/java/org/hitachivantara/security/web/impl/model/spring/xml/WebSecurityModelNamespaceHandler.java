@@ -13,19 +13,18 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
- * Copyright (c) 2019 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.pentaho.platform.web.csrf.pentaho;
+package org.hitachivantara.security.web.impl.model.spring.xml;
 
-import org.hitachivantara.security.web.api.csrfold.CsrfTokenService;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
-/**
- * This interface extends {@link CsrfTokenService} with Pentaho-specific information.
- */
-public interface PentahoCsrfService extends CsrfTokenService {
-  /**
-   * The Web Application URL of the CSRF Token service in the Pentaho Server.
-   */
-  String SERVICE_URL = "/api/system/csrf";
+public class WebSecurityModelNamespaceHandler extends NamespaceHandlerSupport {
+
+  @Override
+  public void init() {
+    registerBeanDefinitionParser( "regex-request-matcher", new RegexRequestMatcherParser() );
+    registerBeanDefinitionParser( "or-request-matcher", new OrRequestMatcherParser() );
+  }
 }
