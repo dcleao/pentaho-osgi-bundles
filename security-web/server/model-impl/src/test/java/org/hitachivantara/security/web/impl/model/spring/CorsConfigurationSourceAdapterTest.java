@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
@@ -45,11 +46,15 @@ public class CorsConfigurationSourceAdapterTest {
 
     CorsRequestSetConfiguration rootSetConfig = mock( CorsRequestSetConfiguration.class );
     when( rootSetConfig.isEnabled() ).thenReturn( true );
+    when( rootSetConfig.isAbstract() ).thenReturn( false );
+    when( rootSetConfig.isEnabledEffective() ).thenReturn( true );
 
     when( configuration.getRootConfiguration() ).thenReturn( rootSetConfig );
 
     CorsRequestSetConfiguration requestSetConfig = mock( CorsRequestSetConfiguration.class );
     when( requestSetConfig.isEnabled() ).thenReturn( true );
+    when( requestSetConfig.isAbstract() ).thenReturn( false );
+    when( requestSetConfig.isEnabledEffective() ).thenReturn( true );
 
     when( configuration.getRequestConfiguration( any( HttpServletRequest.class ) ) )
       .thenReturn( requestSetConfig );
@@ -65,6 +70,38 @@ public class CorsConfigurationSourceAdapterTest {
   @Nonnull
   private static List<String> createList( String... elements ) {
     return Arrays.asList( elements );
+  }
+
+  @Test
+  public void testAbstractEnabledConfigIsConvertedToNull() {
+    CorsConfiguration configuration = createConfigurationMock();
+
+    HttpServletRequest requestMock = mock( HttpServletRequest.class );
+    CorsRequestSetConfiguration requestConfig = configuration
+      .getRequestConfiguration( requestMock );
+
+    when( requestConfig.isAbstract() ).thenReturn( true );
+    when( requestConfig.isEnabledEffective() ).thenReturn( false );
+
+    CorsConfigurationSourceAdapter adapter = new CorsConfigurationSourceAdapter( configuration );
+
+    assertNull( adapter.getCorsConfiguration( requestMock ) );
+  }
+
+  @Test
+  public void testConcreteDisabledConfigIsConvertedToNull() {
+    CorsConfiguration configuration = createConfigurationMock();
+
+    HttpServletRequest requestMock = mock( HttpServletRequest.class );
+    CorsRequestSetConfiguration requestConfig = configuration
+      .getRequestConfiguration( requestMock );
+
+    when( requestConfig.isEnabled() ).thenReturn( false );
+    when( requestConfig.isEnabledEffective() ).thenReturn( false );
+
+    CorsConfigurationSourceAdapter adapter = new CorsConfigurationSourceAdapter( configuration );
+
+    assertNull( adapter.getCorsConfiguration( requestMock ) );
   }
 
   @Test
@@ -85,6 +122,8 @@ public class CorsConfigurationSourceAdapterTest {
     when( requestConfig.getAllowCredentials() ).thenReturn( null );
 
     org.springframework.web.cors.CorsConfiguration springConfig = adapter.getCorsConfiguration( requestMock );
+
+    assertNotNull( springConfig );
 
     assertNull( springConfig.getAllowedOrigins() );
     assertNull( springConfig.getAllowedHeaders() );
@@ -132,6 +171,8 @@ public class CorsConfigurationSourceAdapterTest {
 
     org.springframework.web.cors.CorsConfiguration springConfig = adapter.getCorsConfiguration( requestMock );
 
+    assertNotNull( springConfig );
+
     assertEquals( new Long( 10L ), springConfig.getMaxAge() );
     assertEquals( new Boolean( true ), springConfig.getAllowCredentials() );
   }
@@ -145,6 +186,7 @@ public class CorsConfigurationSourceAdapterTest {
     HttpServletRequest requestMock1 = mock( HttpServletRequest.class );
     CorsRequestSetConfiguration requestSetConfig1 = mock( CorsRequestSetConfiguration.class );
     when( requestSetConfig1.isEnabled() ).thenReturn( true );
+    when( requestSetConfig1.isEnabledEffective() ).thenReturn( true );
     when( requestSetConfig1.getMaxAge() ).thenReturn( 10L );
 
     when( configuration.getRequestConfiguration( requestMock1 ) )
@@ -155,6 +197,7 @@ public class CorsConfigurationSourceAdapterTest {
     HttpServletRequest requestMock2 = mock( HttpServletRequest.class );
     CorsRequestSetConfiguration requestSetConfig2 = mock( CorsRequestSetConfiguration.class );
     when( requestSetConfig2.isEnabled() ).thenReturn( true );
+    when( requestSetConfig2.isEnabledEffective() ).thenReturn( true );
     when( requestSetConfig2.getMaxAge() ).thenReturn( 20L );
 
     when( configuration.getRequestConfiguration( requestMock2 ) )
@@ -164,9 +207,13 @@ public class CorsConfigurationSourceAdapterTest {
 
     org.springframework.web.cors.CorsConfiguration springConfig1_1 = adapter.getCorsConfiguration( requestMock1 );
 
+    assertNotNull( springConfig1_1 );
+
     assertEquals( new Long( 10L ), springConfig1_1.getMaxAge() );
 
     org.springframework.web.cors.CorsConfiguration springConfig2_1 = adapter.getCorsConfiguration( requestMock2 );
+
+    assertNotNull( springConfig2_1 );
 
     assertEquals( new Long( 20L ), springConfig2_1.getMaxAge() );
 

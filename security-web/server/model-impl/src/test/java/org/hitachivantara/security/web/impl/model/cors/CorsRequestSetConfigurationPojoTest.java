@@ -37,10 +37,11 @@ import static org.junit.Assert.assertTrue;
 public class CorsRequestSetConfigurationPojoTest {
 
   @Test
-  public void testWhenConstructedWithNoArgsIsEnabledAndMatchesNone() {
+  public void testWhenConstructedWithNoArgsIsConcreteAndIsEnabledAndMatchesNone() {
     CorsRequestSetConfigurationPojo config = new CorsRequestSetConfigurationPojo();
 
     assertTrue( config.isEnabled() );
+    assertFalse( config.isAbstract() );
     assertEquals( RequestMatcher.NONE, config.getRequestMatcher() );
   }
 
@@ -60,18 +61,20 @@ public class CorsRequestSetConfigurationPojoTest {
   }
 
   @Test
-  public void testWhenConstructedWithArgsEnabledThenIsEnabledAndMatchesNone() {
+  public void testWhenConstructedWithArgsEnabledThenIsEnabledAndIsConcreteAndMatchesNone() {
     CorsRequestSetConfigurationPojo config = new CorsRequestSetConfigurationPojo( true );
 
     assertTrue( config.isEnabled() );
+    assertFalse( config.isAbstract() );
     assertEquals( RequestMatcher.NONE, config.getRequestMatcher() );
   }
 
   @Test
-  public void testWhenConstructedWithArgsDisabledThenIsDisabledAndMatchesNone() {
+  public void testWhenConstructedWithArgsDisabledThenIsDisabledAndIsConcreteAndMatchesNone() {
     CorsRequestSetConfigurationPojo config = new CorsRequestSetConfigurationPojo( false );
 
     assertFalse( config.isEnabled() );
+    assertFalse( config.isAbstract() );
     assertEquals( RequestMatcher.NONE, config.getRequestMatcher() );
   }
 
@@ -104,6 +107,11 @@ public class CorsRequestSetConfigurationPojoTest {
       @Override
       public boolean isEnabled() {
         return false;
+      }
+
+      @Override
+      public boolean isAbstract() {
+        return true;
       }
 
       @Nullable @Override
@@ -149,6 +157,7 @@ public class CorsRequestSetConfigurationPojoTest {
     assertEquals( other.getParentName(), config.getParentName() );
     assertEquals( other.getRequestMatcher(), config.getRequestMatcher() );
     assertEquals( other.isEnabled(), config.isEnabled() );
+    assertEquals( other.isAbstract(), config.isAbstract() );
     assertEquals( other.getMaxAge(), config.getMaxAge() );
     assertEquals( other.getAllowCredentials(), config.getAllowCredentials() );
     assertEquals( other.getAllowedHeaders(), config.getAllowedHeaders() );
@@ -163,7 +172,6 @@ public class CorsRequestSetConfigurationPojoTest {
     CorsRequestSetConfiguration other = createConfiguration();
 
     CorsRequestSetConfigurationPojo config = new CorsRequestSetConfigurationPojo( other );
-
 
     // noinspection SimplifiableAssertion
     assertTrue( config.equals( other ) );
@@ -201,6 +209,20 @@ public class CorsRequestSetConfigurationPojoTest {
     config.setEnabled( false );
 
     assertFalse( config.isEnabled() );
+  }
+
+  @Test
+  public void testSetAbstractWorks() {
+
+    CorsRequestSetConfigurationPojo config = new CorsRequestSetConfigurationPojo();
+
+    config.setAbstract( true );
+
+    assertTrue( config.isAbstract() );
+
+    config.setAbstract( false );
+
+    assertFalse( config.isAbstract() );
   }
 
   @Test

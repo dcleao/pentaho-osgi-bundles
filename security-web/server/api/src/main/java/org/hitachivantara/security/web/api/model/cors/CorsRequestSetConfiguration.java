@@ -61,6 +61,22 @@ public interface CorsRequestSetConfiguration {
   String getParentName();
 
   /**
+   * Gets a value that indicates if this request set is abstract
+   * <p>
+   * An abstract request set provides defaults to child request sets
+   * and restricts their enabled status.
+   * <p>
+   * Naturally, being a parent request set, it should have a {@link #getName} to be able to be a parent.
+   * <p>
+   * Only a non-abstract request set can effectively enable a CORS request.
+   *
+   * @return {@code true} if abstract; {@code false}, otherwise.
+   *
+   * @see #isEnabledEffective()
+   */
+  boolean isAbstract();
+
+  /**
    * Gets the request matcher that identifies requests in the set.
    * <p>
    * The request matcher of a root configuration is typically {@link RequestMatcher#ALL}.
@@ -76,8 +92,21 @@ public interface CorsRequestSetConfiguration {
    * A configuration is effectively enabled if it and all of its ancestor configurations are enabled.
    *
    * @return {@code true} if enabled; {@code false}, otherwise.
+   *
+   * @see #isEnabledEffective()
    */
   boolean isEnabled();
+
+  /**
+   * Gets a value that indicates if the request set is both enabled and concrete (i.e. not abstract).
+   *
+   * @return {@code true} if effectively enabled; {@code false}, otherwise.
+   * @see #isEnabled()
+   * @see #isAbstract()
+   */
+  default boolean isEnabledEffective() {
+    return !this.isAbstract() && this.isEnabled();
+  }
 
   /**
    * Gets the external origins allowed by the CORS requests of this set.

@@ -18,6 +18,7 @@
 package org.hitachivantara.security.web.impl.service.csrf.jaxrs;
 
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.filter.CorsFilter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -50,6 +51,7 @@ import javax.ws.rs.core.Response;
  */
 @Path( "/csrf/token" )
 public class CsrfTokenService {
+
   /**
    * The name of the {@link javax.servlet.ServletRequest} attribute where
    * {@link org.springframework.security.web.csrf.CsrfFilter}

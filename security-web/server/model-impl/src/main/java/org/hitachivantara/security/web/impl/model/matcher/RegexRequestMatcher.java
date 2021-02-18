@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+// This implementation is based on Spring's same named class:
+// org.springframework.security.web.util.matcher.RegexRequestMatcher
 public class RegexRequestMatcher implements RequestMatcher {
   @Nonnull
   private final Pattern pattern;
@@ -96,6 +98,9 @@ public class RegexRequestMatcher implements RequestMatcher {
   }
 
   private static String getMatchUrl( @Nonnull HttpServletRequest request ) {
+
+    // Example match url.
+    // /api/user-settings/FOO?a=b
 
     String url = request.getServletPath();
 

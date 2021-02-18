@@ -45,6 +45,11 @@ public class CorsConfigurationSourceAdapter implements org.springframework.web.c
   @Nonnull
   private final LoadingCache<CorsRequestSetConfiguration, org.springframework.web.cors.CorsConfiguration> configCache;
 
+  // LoadingCache does not support null values, so we have to resort to a null sentinel value.
+  @Nonnull
+  private static final org.springframework.web.cors.CorsConfiguration NULL_SPRING_CONFIG =
+    new org.springframework.web.cors.CorsConfiguration();
+
   public CorsConfigurationSourceAdapter( @Nonnull CorsConfiguration configuration ) {
     requireNonNull( configuration );
     this.configuration = configuration;
@@ -59,17 +64,20 @@ public class CorsConfigurationSourceAdapter implements org.springframework.web.c
       } );
   }
 
-  @Override
+  @Nullable @Override
   public org.springframework.web.cors.CorsConfiguration getCorsConfiguration( @Nonnull HttpServletRequest request ) {
-    return configCache.getUnchecked( configuration.getRequestConfiguration( request ) );
+    org.springframework.web.cors.CorsConfiguration result =
+      configCache.getUnchecked( configuration.getRequestConfiguration( request ) );
+
+    return result != NULL_SPRING_CONFIG ? result : null;
   }
 
-  @Nullable
+  @Nonnull
   private static org.springframework.web.cors.CorsConfiguration computeSpringCorsConfiguration(
     @Nonnull CorsRequestSetConfiguration requestConfig ) {
 
-    if ( !requestConfig.isEnabled() ) {
-      return null;
+    if ( !requestConfig.isEnabledEffective() ) {
+      return NULL_SPRING_CONFIG;
     }
 
     org.springframework.web.cors.CorsConfiguration springCorsConfig =

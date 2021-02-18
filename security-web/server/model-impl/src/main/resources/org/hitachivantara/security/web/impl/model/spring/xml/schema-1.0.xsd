@@ -11,7 +11,7 @@
   <!--
     Example:
     <swm:or-request-matcher>
-      <swm:regex-request-matcher pattern="^/api/user-settings/.*" methods="GET POST" />
+      <swm:regex-request-matcher pattern="^/api/user-settings/.*" methods="GET POST" insensitive="true" />
       ...
     </swm:or-request-matcher>
   -->
@@ -23,10 +23,24 @@
   -->
   <xsd:element name="regex-request-matcher" type="swm:TRegexRequestMatcher" id="regex-request-matcher"/>
 
+  <!--
+    Example:
+    <swm:all-request-matcher />
+  -->
+  <xsd:element name="all-request-matcher" type="swm:TAllRequestMatcher" id="all-request-matcher"/>
+
+  <!--
+    Example:
+    <swm:none-request-matcher />
+  -->
+  <xsd:element name="none-request-matcher" type="swm:TNoneRequestMatcher" id="none-request-matcher"/>
+
   <xsd:group name="requestMatcherElements">
     <xsd:choice>
       <xsd:element ref="or-request-matcher"/>
       <xsd:element ref="regex-request-matcher"/>
+      <xsd:element ref="all-request-matcher"/>
+      <xsd:element ref="none-request-matcher"/>
     </xsd:choice>
   </xsd:group>
 
@@ -52,6 +66,7 @@
       <xsd:extension base="swm:TAbstractRequestMatcher">
         <xsd:attribute name="pattern" type="xsd:string" use="required"/>
         <xsd:attribute name="methods" type="swm:THttpMethods"/>
+        <xsd:attribute name="insensitive" type="xsd:boolean"/>
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
@@ -63,6 +78,20 @@
           <xsd:group ref="swm:requestMatcherElements"/>
           <xsd:any/>
         </xsd:choice>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="TAllRequestMatcher">
+    <xsd:complexContent>
+      <xsd:extension base="swm:TAbstractRequestMatcher">
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="TNoneRequestMatcher">
+    <xsd:complexContent>
+      <xsd:extension base="swm:TAbstractRequestMatcher">
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>

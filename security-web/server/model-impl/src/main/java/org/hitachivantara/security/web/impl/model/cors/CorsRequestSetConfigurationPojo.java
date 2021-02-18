@@ -50,6 +50,8 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
 
   protected boolean isEnabled;
 
+  protected boolean isAbstract;
+
   @Nullable
   protected Set<String> allowedOrigins;
 
@@ -69,14 +71,14 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
   protected Long maxAge;
 
   /**
-   * Creates an enabled CORS request set configuration, for an empty set of requests.
+   * Creates a concrete and enabled CORS request set configuration, for an empty set of requests.
    */
   public CorsRequestSetConfigurationPojo() {
     this( true );
   }
 
   /**
-   * Creates a CORS request set configuration, for an empty set of requests and a given enabled status.
+   * Creates a concrete CORS request set configuration, for an empty set of requests and a given enabled status.
    *
    * @param isEnabled The enabled status.
    */
@@ -97,6 +99,7 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
     this.name = other.getName();
     this.parentName = other.getParentName();
     this.isEnabled = other.isEnabled();
+    this.isAbstract = other.isAbstract();
     this.requestMatcher = other.getRequestMatcher();
     this.allowedOrigins = copySet( other.getAllowedOrigins() );
     this.allowedHeaders = copySet( other.getAllowedHeaders() );
@@ -180,6 +183,23 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
    */
   public void setEnabled( boolean isEnabled ) {
     this.isEnabled = isEnabled;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public boolean isAbstract() {
+    return isAbstract;
+  }
+
+  /**
+   * Sets the abstract nature of this CORS configuration.
+   *
+   * @param isAbstract Indicates if the configuration is abstract.
+   */
+  public void setAbstract( boolean isAbstract ) {
+    this.isAbstract = isAbstract;
   }
 
   /**
@@ -298,6 +318,7 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
 
     CorsRequestSetConfiguration that = (CorsRequestSetConfiguration) other;
     return isEnabled() == that.isEnabled()
+      && isAbstract() == that.isAbstract()
       && Objects.equals( getName(), that.getName() )
       && Objects.equals( getParentName(), that.getParentName() )
       && getRequestMatcher().equals( that.getRequestMatcher() )
@@ -316,6 +337,7 @@ public class CorsRequestSetConfigurationPojo implements CorsRequestSetConfigurat
       getParentName(),
       getRequestMatcher(),
       isEnabled(),
+      isAbstract(),
       getAllowedOrigins(),
       getAllowedMethods(),
       getAllowedHeaders(),

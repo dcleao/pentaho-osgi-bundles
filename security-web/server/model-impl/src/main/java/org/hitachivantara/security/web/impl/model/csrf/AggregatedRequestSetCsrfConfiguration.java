@@ -21,6 +21,7 @@ package org.hitachivantara.security.web.impl.model.csrf;
 import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.hitachivantara.security.web.api.model.csrf.CsrfRequestSetConfiguration;
 import org.hitachivantara.security.web.api.model.matcher.RequestMatcher;
+import org.hitachivantara.security.web.impl.model.matcher.OrRequestMatcher;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -170,7 +171,7 @@ public final class AggregatedRequestSetCsrfConfiguration implements CsrfConfigur
       .map( CsrfRequestSetConfiguration::getRequestMatcher )
       .collect( Collectors.toList() );
 
-    return RequestMatcher.createOr( requestMatchers );
+    return OrRequestMatcher.create( requestMatchers );
   }
 
   /**

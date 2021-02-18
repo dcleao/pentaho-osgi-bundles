@@ -18,11 +18,7 @@
 
 package org.hitachivantara.security.web.api.model.matcher;
 
-import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -33,45 +29,4 @@ import java.util.function.Predicate;
 public interface RequestMatcher extends Predicate<HttpServletRequest> {
   RequestMatcher ALL = r -> true;
   RequestMatcher NONE = r -> false;
-
-  /**
-   * Creates an OR request matcher from a list of request matchers.
-   *
-   * @param requestMatchers A list of request matchers.
-   * @return A request matcher which matches if any of the specified request matchers matches.
-   */
-  @Nonnull
-  static RequestMatcher createOr( @Nonnull List<RequestMatcher> requestMatchers ) {
-    Objects.requireNonNull( requestMatchers );
-
-    List<RequestMatcher> filtered = new ArrayList<>();
-
-    for ( RequestMatcher requestMatcher : requestMatchers ) {
-      if ( requestMatcher == RequestMatcher.ALL ) {
-        return RequestMatcher.ALL;
-      }
-
-      if ( requestMatcher != RequestMatcher.NONE ) {
-        filtered.add( requestMatcher );
-      }
-    }
-
-    if ( filtered.isEmpty() ) {
-      return RequestMatcher.NONE;
-    }
-
-    if ( filtered.size() == 1 ) {
-      return filtered.get( 0 );
-    }
-
-    return request -> {
-      for ( RequestMatcher requestMatcher : filtered ) {
-        if ( requestMatcher.test( request ) ) {
-          return true;
-        }
-      }
-
-      return false;
-    };
-  }
 }
