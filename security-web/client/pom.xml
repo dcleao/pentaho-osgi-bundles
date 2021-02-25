@@ -10,7 +10,7 @@
     <version>9.2.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>client-modules</artifactId>
+  <artifactId>security-web-client-modules</artifactId>
 
   <packaging>pom</packaging>
 

@@ -6,7 +6,7 @@
 
   <parent>
     <groupId>org.hitachivantara</groupId>
-    <artifactId>client-modules</artifactId>
+    <artifactId>security-web-client-modules</artifactId>
     <version>9.2.0.0-SNAPSHOT</version>
   </parent>
 
@@ -28,16 +28,6 @@
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hitachivantara</groupId>
-      <artifactId>csrf-client-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hitachivantara</groupId>
-      <artifactId>security-web-server-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -82,12 +72,9 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Bundle-Version>${project.version}</Bundle-Version>
-            <Import-Package>*</Import-Package>
+            <Export-Package>org.hitachivantara.security.web.impl.client.csrf.jaxrs.*</Export-Package>
           </instructions>
         </configuration>
       </plugin>
