@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class OrRequestMatcherParser extends AbstractBeanDefinitionParser {
+class OrRequestMatcherParser extends AbstractBeanDefinitionParser {
   @Override
   protected AbstractBeanDefinition parseInternal( Element element, ParserContext parserContext ) {
 

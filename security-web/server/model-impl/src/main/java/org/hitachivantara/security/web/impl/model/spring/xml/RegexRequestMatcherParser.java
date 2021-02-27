@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
 import java.util.Arrays;
 import java.util.List;
 
-public class RegexRequestMatcherParser extends AbstractBeanDefinitionParser {
+class RegexRequestMatcherParser extends AbstractBeanDefinitionParser {
   @Override
   protected AbstractBeanDefinition parseInternal( Element element, ParserContext parserContext ) {
 

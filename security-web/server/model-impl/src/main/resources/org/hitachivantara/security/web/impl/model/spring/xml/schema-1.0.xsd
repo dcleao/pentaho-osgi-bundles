@@ -37,10 +37,10 @@
 
   <xsd:group name="requestMatcherElements">
     <xsd:choice>
-      <xsd:element ref="or-request-matcher"/>
-      <xsd:element ref="regex-request-matcher"/>
-      <xsd:element ref="all-request-matcher"/>
-      <xsd:element ref="none-request-matcher"/>
+      <xsd:element ref="swm:or-request-matcher"/>
+      <xsd:element ref="swm:regex-request-matcher"/>
+      <xsd:element ref="swm:all-request-matcher"/>
+      <xsd:element ref="swm:none-request-matcher"/>
     </xsd:choice>
   </xsd:group>
 

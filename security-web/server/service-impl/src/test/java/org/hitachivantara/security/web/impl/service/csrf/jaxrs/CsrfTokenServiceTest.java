@@ -17,6 +17,7 @@
 
 package org.hitachivantara.security.web.impl.service.csrf.jaxrs;
 
+import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +46,7 @@ public class CsrfTokenServiceTest {
   private Response mockResponse;
   private Response.ResponseBuilder mockResponseBuilder;
   private CsrfTokenService csrfTokeResource;
+  private CsrfConfiguration mockCsrfConfiguration;
 
   private static final String RESPONSE_HEADER_VALUE = "HEADER_NAME";
   private static final String RESPONSE_PARAM_VALUE = "PARAM_NAME";
@@ -66,7 +68,12 @@ public class CsrfTokenServiceTest {
       .thenReturn( mockResponse );
 
     mockRequest = mock( HttpServletRequest.class );
-    csrfTokeResource = Mockito.spy( new CsrfTokenService() );
+    mockCsrfConfiguration = mock( CsrfConfiguration.class );
+    when( mockCsrfConfiguration.isEnabled() ).thenReturn( true );
+
+    csrfTokeResource = Mockito.spy( new CsrfTokenService( mockCsrfConfiguration ) );
+
+    csrfTokeResource.request = mockRequest;
   }
 
   private static CsrfToken createToken() {
@@ -81,9 +88,23 @@ public class CsrfTokenServiceTest {
   }
 
   @Test
-  public void testWhenNoCsrfTokenInRequest() {
+  public void testWhenCsrfIsDisabled() {
 
-    csrfTokeResource.request = mockRequest;
+    when( mockCsrfConfiguration.isEnabled() ).thenReturn( false );
+
+    Response response = csrfTokeResource.getToken( "url" );
+
+    assertEquals( mockResponse, response );
+
+    verify( mockResponseBuilder, times( 1 ) )
+      .build();
+
+    verify( mockResponseBuilder, times( 0 ) )
+      .header( any( String.class ), any( String.class ) );
+  }
+
+  @Test
+  public void testWhenNoCsrfTokenInRequest() {
 
     Response response = csrfTokeResource.getToken( "url" );
 
@@ -102,8 +123,6 @@ public class CsrfTokenServiceTest {
     CsrfToken token = createToken();
     when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) )
       .thenReturn( token );
-
-    csrfTokeResource.request = mockRequest;
 
     Response response = csrfTokeResource.getToken( "url" );
 
@@ -128,8 +147,6 @@ public class CsrfTokenServiceTest {
     CsrfToken token = createToken();
     when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) )
       .thenReturn( token );
-
-    csrfTokeResource.request = mockRequest;
 
     Response response = csrfTokeResource.getToken( "url" );
 

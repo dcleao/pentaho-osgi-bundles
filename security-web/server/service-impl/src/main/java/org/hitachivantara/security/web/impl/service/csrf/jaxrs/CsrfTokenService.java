@@ -17,23 +17,28 @@
 
 package org.hitachivantara.security.web.impl.service.csrf.jaxrs;
 
+import org.hitachivantara.security.web.api.model.csrf.CsrfConfiguration;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.filter.CorsFilter;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.Objects;
 
 /**
  * This REST resource represents the CSRF token that should be used to request a specified URL, under a certain user
  * session.
  * <p>
- * This resource is designed to work with Sprint's {@link org.springframework.security.web.csrf.CsrfFilter} filter. The
- * filter must be applied to this resource. However, the resource itself must not be protected against CSRF.
- * Additionally, the resource should not require authentication, so that the login operation itself can be secured.
+ * This resource is designed to work with Spring's {@link org.springframework.security.web.csrf.CsrfFilter} filter, or
+ * with the provided and often more convenient
+ * {@link org.hitachivantara.security.web.impl.service.csrf.servlet.CsrfGateFilter} wrapper.
+ * The filter must be applied to this resource. However, the resource itself must not be protected against
+ * CSRF. Additionally, the resource should not require authentication, so that the login operation itself can be
+ * secured.
  * <p>
  * When {@code CsrfFilter} receives a request which is <em>not</em> subject to protection, and for which an applicable
  * CSRF token is not present in the filter's associated
@@ -86,24 +91,35 @@ public class CsrfTokenService {
   @Context
   HttpServletRequest request;
 
+  @Nonnull
+  private final CsrfConfiguration configuration;
+
+  public CsrfTokenService( @Nonnull CsrfConfiguration configuration ) {
+    Objects.requireNonNull( configuration );
+    this.configuration = configuration;
+  }
+
   @GET
   @Path( "/" )
   public Response getToken( @QueryParam( QUERY_PARAM_URL ) String url ) {
 
     Response.ResponseBuilder responseBuilder = Response.noContent();
 
-    // Spring's CsrfFilter should be setup to run before, and should have placed a token in this attribute.
-    // When CSRF is disabled, the attribute will not have been set.
-    CsrfToken token = (CsrfToken) request.getAttribute( REQUEST_ATTRIBUTE_NAME );
-    if ( token != null ) {
-      String tokenHeaderName = token.getHeaderName();
-      responseBuilder.header( RESPONSE_HEADER_HEADER, tokenHeaderName );
+    // Spring's CsrfFilter should be setup to run before,
+    // and should have placed a token in this attribute.
+    // When using the Spring filter directly, it sets the attribute even when CSRF is disabled.
+    if ( configuration.isEnabled() ) {
+      CsrfToken token = (CsrfToken) request.getAttribute( REQUEST_ATTRIBUTE_NAME );
+      if ( token != null ) {
+        String tokenHeaderName = token.getHeaderName();
+        responseBuilder.header( RESPONSE_HEADER_HEADER, tokenHeaderName );
 
-      String tokenParameterName = token.getParameterName();
-      responseBuilder.header( RESPONSE_HEADER_PARAM, tokenParameterName );
+        String tokenParameterName = token.getParameterName();
+        responseBuilder.header( RESPONSE_HEADER_PARAM, tokenParameterName );
 
-      String tokenValue = token.getToken();
-      responseBuilder.header( RESPONSE_HEADER_TOKEN, tokenValue );
+        String tokenValue = token.getToken();
+        responseBuilder.header( RESPONSE_HEADER_TOKEN, tokenValue );
+      }
     }
 
     return responseBuilder.build();

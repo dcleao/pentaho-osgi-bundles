@@ -23,6 +23,11 @@
       <artifactId>security-web-server-api</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.hitachivantara</groupId>
+      <artifactId>security-web-server-model-impl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- OSGi -->
     <dependency>
