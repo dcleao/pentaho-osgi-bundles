@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * A Servlet filter that protects protected endpoints against CSRF attacks.
+ * A Servlet filter that protects endpoints marked as protected against CSRF attacks.
  * <p>
  * This class is a convenience, thin wrapper around Spring's {@link CsrfFilter} that mostly adapts the configuration
  * format and that only calls the inner filter when CSRF protection is enabled.

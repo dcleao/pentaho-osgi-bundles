@@ -40,6 +40,12 @@ import java.util.Objects;
  * <p>
  * If desired, Spring's {@code CorsProtocolFilter} can be used directly, even when CORS is disabled. You can use the
  * adapter {@link CorsConfigurationSourceAdapter} to adapt between the configuration formats.
+ * <p>
+ * For CORS to function properly, the CORS filter must be placed <em>before</em> any authentication filters.
+ * This is because pre-flight requests to the target URLs, which use an {@code OPTIONS} method and an
+ * {@code Access-Control-Request-Method} header don't contain authentication as per the CORS specification.
+ * If the CORS filter is not before the authentication filter, the preflight requets will fail with a {@code 401}
+ * HTTP status error.
  */
 public class CorsProtocolFilter implements Filter {
 
