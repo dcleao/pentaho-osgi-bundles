@@ -100,7 +100,6 @@ public class CsrfTokenService {
   }
 
   @GET
-  @Path( "/" )
   public Response getToken( @QueryParam( QUERY_PARAM_URL ) String url ) {
 
     Response.ResponseBuilder responseBuilder = Response.noContent();
