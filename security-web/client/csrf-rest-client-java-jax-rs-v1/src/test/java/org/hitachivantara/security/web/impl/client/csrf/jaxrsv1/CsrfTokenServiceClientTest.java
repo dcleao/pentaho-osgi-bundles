@@ -15,30 +15,30 @@
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.client.csrf.jaxrs;
+package org.hitachivantara.security.web.impl.client.csrf.jaxrsv1;
 
-import org.hitachivantara.security.web.impl.client.csrf.jaxrs.util.SessionCookiesFilter;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandler;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.SessionCookiesFilter;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.MultivaluedMap;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 
-import static org.hitachivantara.security.web.impl.client.csrf.jaxrs.CsrfTokenServiceClient.RESPONSE_HEADER_HEADER;
-import static org.hitachivantara.security.web.impl.client.csrf.jaxrs.CsrfTokenServiceClient.RESPONSE_HEADER_PARAM;
-import static org.hitachivantara.security.web.impl.client.csrf.jaxrs.CsrfTokenServiceClient.RESPONSE_HEADER_TOKEN;
+import static org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.CsrfTokenServiceClient.RESPONSE_HEADER_HEADER;
+import static org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.CsrfTokenServiceClient.RESPONSE_HEADER_PARAM;
+import static org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.CsrfTokenServiceClient.RESPONSE_HEADER_TOKEN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -60,37 +60,38 @@ public class CsrfTokenServiceClientTest {
   }
 
   private Client mockClient;
-  private WebTarget mockWebTarget;
-  private Invocation.Builder mockInvocationBuilder;
-  private Response mockResponse;
+  private WebResource mockWebResource;
+  private ClientResponse mockResponse;
 
   @Before
   public void setUp() {
     mockClient = mock( Client.class );
-    Configuration mockConfiguration = mock( Configuration.class );
-    mockWebTarget = mock( WebTarget.class );
-    mockInvocationBuilder = mock( Invocation.Builder.class );
-    mockResponse = mock( Response.class );
+    mockWebResource = mock( WebResource.class );
+    mockResponse = mock( ClientResponse.class );
 
     // ---
-    when( mockConfiguration.isRegistered( SessionCookiesFilter.class ) ).thenReturn( true );
-    when( mockClient.getConfiguration() ).thenReturn( mockConfiguration );
 
-    when( mockClient.target( any( URI.class ) ) ).thenReturn( mockWebTarget );
-    when( mockWebTarget.queryParam( anyString(), anyObject() ) ).thenReturn( mockWebTarget );
-    when( mockWebTarget.request() ).thenReturn( mockInvocationBuilder );
-    when( mockInvocationBuilder.get() ).thenReturn( mockResponse );
+    ClientHandler handler = mock( SessionCookiesFilter.class );
+    when( mockClient.getHeadHandler() ).thenReturn( handler );
+
+    when( mockClient.resource( any( URI.class ) ) ).thenReturn( mockWebResource );
+    when( mockWebResource.get( eq( ClientResponse.class ) ) ).thenReturn( mockResponse );
 
     // ---
 
     when( mockResponse.getStatus() ).thenReturn( 204 );
+    when( mockResponse.getHeaders() ).thenReturn( createResponseHeadersMap() );
+  }
 
-    when( mockResponse.getHeaderString( eq( RESPONSE_HEADER_HEADER ) ) )
-      .thenReturn( TEST_CSRF_HEADER );
-    when( mockResponse.getHeaderString( eq( RESPONSE_HEADER_PARAM ) ) )
-      .thenReturn( TEST_CSRF_PARAMETER );
-    when( mockResponse.getHeaderString( eq( RESPONSE_HEADER_TOKEN ) ) )
-      .thenReturn( TEST_CSRF_TOKEN );
+  private MultivaluedMap<String, String> createResponseHeadersMap() {
+
+    MultivaluedMap<String, String> responseHeadersMap = new MultivaluedMapImpl();
+
+    responseHeadersMap.put( RESPONSE_HEADER_HEADER, Collections.singletonList( TEST_CSRF_HEADER ) );
+    responseHeadersMap.put( RESPONSE_HEADER_PARAM, Collections.singletonList( TEST_CSRF_PARAMETER ) );
+    responseHeadersMap.put( RESPONSE_HEADER_TOKEN, Collections.singletonList( TEST_CSRF_TOKEN ) );
+
+    return responseHeadersMap;
   }
 
   @Test
@@ -116,13 +117,10 @@ public class CsrfTokenServiceClientTest {
     csrfTokenClient.getToken();
 
     verify( mockClient, times( 1 ) )
-      .target( eq( TEST_SERVICE_URI ) );
+      .resource( eq( TEST_SERVICE_URI ) );
 
-    verify( mockWebTarget, times( 1 ) )
-      .request();
-
-    verify( mockInvocationBuilder, times( 1 ) )
-      .get();
+    verify( mockWebResource, times( 1 ) )
+      .get( eq( ClientResponse.class ) );
   }
 
   // region 204 with Token Present
@@ -145,25 +143,10 @@ public class CsrfTokenServiceClientTest {
 
   // region 204 with Null or Empty Token
   @Test
-  public void testGetTokenWhenResponseIs200AndTokenIsNotPresent() {
-
-    when( mockResponse.getStatus() ).thenReturn( 200 );
-    when( mockResponse.getHeaderString( eq( RESPONSE_HEADER_TOKEN ) ) )
-      .thenReturn( null );
-
-    CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
-
-    CsrfToken token = csrfTokenClient.getToken();
-
-    assertNull( token );
-  }
-
-  @Test
   public void testGetTokenWhenResponseIs204AndTokenIsNotPresent() {
 
     when( mockResponse.getStatus() ).thenReturn( 204 );
-    when( mockResponse.getHeaderString( eq( RESPONSE_HEADER_TOKEN ) ) )
-      .thenReturn( null );
+    when( mockResponse.getHeaders() ).thenReturn( new MultivaluedMapImpl() );
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
@@ -176,8 +159,10 @@ public class CsrfTokenServiceClientTest {
   public void testGetTokenWhenResponseIs204AndTokenIsEmpty() {
 
     when( mockResponse.getStatus() ).thenReturn( 204 );
-    when( mockResponse.getHeaderString( eq( RESPONSE_HEADER_TOKEN ) ) )
-      .thenReturn( "" );
+
+    MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+    headers.put( RESPONSE_HEADER_TOKEN, Collections.singletonList( "" ) );
+    when( mockResponse.getHeaders() ).thenReturn( headers );
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 

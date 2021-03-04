@@ -10,13 +10,13 @@
     <version>9.2.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>csrf-rest-client-java-jax-rs</artifactId>
+  <artifactId>csrf-rest-client-java-jax-rs-v1</artifactId>
   <version>9.2.0.0-SNAPSHOT</version>
 
   <packaging>bundle</packaging>
 
   <name>${project.artifactId}</name>
-  <description>CSRF REST Client - JAX-RS Implementation</description>
+  <description>CSRF REST Client - JAX-RS 1.1 Implementation</description>
 
   <dependencies>
     <!-- OSGi -->
@@ -27,7 +27,16 @@
 
     <dependency>
       <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
+      <artifactId>jsr311-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-client</artifactId>
     </dependency>
 
     <dependency>
@@ -44,21 +53,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
     </dependency>
-
-    <!-- The following two dependencies are necessary at TEST time,
-         to provide a default implementation of javax.ws.rs.ext.RuntimeDelegate (JAX-RS API),
-         as required by the javax.ws.rs.core.Cookie class.
-
-         The jersey-client artifact provides com.sun.ws.rs.ext.RuntimeDelegateImpl.
-
-         See also the test resource file META-INF/services/javax.ws.rs.ext.RuntimeDelegate,
-         which actually registers the implementation.
-    -->
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-client</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -70,8 +64,8 @@
         <configuration>
           <instructions>
             <Export-Package>
-              org.hitachivantara.security.web.impl.client.csrf.jaxrs.*,
-              org.hitachivantara.security.web.impl.client.csrf.jaxrs.util.*
+              org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.*,
+              org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.*
             </Export-Package>
           </instructions>
         </configuration>

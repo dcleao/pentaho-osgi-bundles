@@ -24,35 +24,32 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
 
 /**
- * This REST resource represents the CSRF token that should be used to request a specified URL, under a certain user
+ * This REST resource represents the CSRF token that should be used to request protected services, under a certain user
  * session.
  * <p>
  * This resource is designed to work with Spring's {@link org.springframework.security.web.csrf.CsrfFilter} filter, or
- * with the provided and often more convenient
- * {@link org.hitachivantara.security.web.impl.service.csrf.servlet.CsrfGateFilter} wrapper.
- * The filter must be applied to this resource. However, the resource itself must not be protected against
- * CSRF. Additionally, the resource should not require authentication, so that the login operation itself can be
- * secured.
+ * with the provided, and often more convenient,
+ * {@link org.hitachivantara.security.web.impl.service.csrf.servlet.CsrfGateFilter}
+ * wrapper. The filter must be applied to this resource. However, this REST resource must not be protected against CSRF.
+ * Additionally, the resource should not require authentication, so that the login operation itself can be secured.
  * <p>
  * When {@code CsrfFilter} receives a request which is <em>not</em> subject to protection, and for which an applicable
  * CSRF token is not present in the filter's associated
- * {@link org.springframework.security.web.csrf.CsrfTokenRepository}
- * (typically, mapping to the user session), it creates and stores an applicable token.
+ * {@link org.springframework.security.web.csrf.CsrfTokenRepository},
+ * it creates and stores an applicable token.
  * <p>
  * For non-rejected requests, the filter also makes the currently applicable CSRF token available in a request attribute
  * named {@code "_csrf"}, which can be obtained by {@link javax.servlet.ServletRequest#getAttribute(String)}. From this
  * location, the token can be read for generating pages which embed the token.
  * <p>
  * This resource reads the CSRF token as placed by the filter in the {@code "_csrf"} request attribute and responds with
- * that information. The CSRF token must then be included in a following request, to the protected service specified to
- * this resource in the {@code url} query parameter, and in the same user session, so that the request to the protected
- * service is accepted.
+ * that information. The CSRF token must then be included in requests to protected services under the same user session,
+ * so that the requests are accepted.
  */
 @Path( "/csrf/token" )
 public class CsrfTokenService {
@@ -63,11 +60,6 @@ public class CsrfTokenService {
    * places the {@link CsrfToken} instance.
    */
   static final String REQUEST_ATTRIBUTE_NAME = "_csrf";
-
-  /**
-   * The name of the query parameter on which to specify the URL of the protected service which is to be called.
-   */
-  static final String QUERY_PARAM_URL = "url";
 
   /**
    * The name of the response header whose value is the name of the request header on which the value of the CSRF token
@@ -100,7 +92,7 @@ public class CsrfTokenService {
   }
 
   @GET
-  public Response getToken( @QueryParam( QUERY_PARAM_URL ) String url ) {
+  public Response getToken() {
 
     Response.ResponseBuilder responseBuilder = Response.noContent();
 

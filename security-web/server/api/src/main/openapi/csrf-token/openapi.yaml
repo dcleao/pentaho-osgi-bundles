@@ -31,31 +31,23 @@ paths:
   /csrf/token:
     get:
       operationId: get-token
-      summary: Obtains a CSRF token for calling the protected service which is exposed by the given URL.
-      parameters:
-        - name: url
-          in: query
-          description: The url of the CSRF protected service for which the CSRF token will be used.
-          required: true
-          schema:
-            type: string
-
+      summary: Obtains a CSRF token for calling protected services.
       responses:
         '204':
           description: Successful response.
           headers:
             X-CSRF-HEADER:
               description: |
-                The name of the request header on which the CSRF token
-                should be sent on requests to the protected service.
+                The name of the request header on which the CSRF token should be sent on requests
+                to protected services.
               schema:
                 type: string
 
             X-CSRF-PARAM:
               description: |
-                The name of the request parameter on which the CSRF token
-                should be sent on requests to the protected service.
-                It is preferable to use a request header to send the CSRF token, if possible.
+                The name of the request parameter on which the CSRF token should be sent on requests
+                to protected services. It is preferable to use a request header to send the CSRF token,
+                if possible.
               schema:
                 type: string
 

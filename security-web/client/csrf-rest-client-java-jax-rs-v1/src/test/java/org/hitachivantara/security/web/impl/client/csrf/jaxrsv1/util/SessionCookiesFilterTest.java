@@ -15,12 +15,13 @@
  * Copyright (c) 2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.client.csrf.jaxrs.util;
+package org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util;
 
+import com.sun.jersey.api.client.ClientHandler;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.client.ClientResponse;
 import org.junit.Test;
 
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientResponseContext;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -32,15 +33,16 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,15 +73,11 @@ public class SessionCookiesFilterTest {
     return cookieRequestHeadersMap;
   }
 
-  private Map<String, NewCookie> createResponseCookieMap() {
-
-    Map<String, NewCookie> newCookieMap = new LinkedHashMap<>();
-
-    newCookieMap.put( "cookie1", new NewCookie( "cookie1", "value1" ) );
-    newCookieMap.put( "cookie2", new NewCookie( "cookie2", "value2" ) );
-    newCookieMap.put( "cookie3", new NewCookie( "cookie3", "value3" ) );
-
-    return newCookieMap;
+  private List<NewCookie> createResponseCookieList() {
+    return Arrays.asList(
+      new NewCookie( "cookie1", "value1" ),
+      new NewCookie( "cookie2", "value2" ),
+      new NewCookie( "cookie3", "value3" ) );
   }
 
   private Map<String, List<String>> createCookieResponseHeadersMap() {
@@ -100,31 +98,33 @@ public class SessionCookiesFilterTest {
   public void testFilterAddsCookiesInTheCookieHandlerToTheRequest() throws IOException {
 
     CookieHandler mockCookieHandler = mock( CookieHandler.class );
-
-    when( mockCookieHandler.get( eq( TEST_URI ), anyObject() ) )
+    when( mockCookieHandler.get( eq( TEST_URI ), any() ) )
       .thenReturn( createCookieRequestHeadersMap() );
-
-    SessionCookiesFilter filter = new SessionCookiesFilter( mockCookieHandler );
 
     @SuppressWarnings( "unchecked" )
     MultivaluedMap<String, Object> headers = (MultivaluedMap<String, Object>) mock( MultivaluedMap.class );
 
-    @SuppressWarnings( "unchecked" )
-    MultivaluedMap<String, String> stringHeaders = (MultivaluedMap<String, String>) mock( MultivaluedMap.class );
+    ClientRequest request = mock( ClientRequest.class );
+    when( request.getURI() ).thenReturn( TEST_URI );
+    when( request.getHeaders() ).thenReturn( headers );
 
-    ClientRequestContext requestContext = mock( ClientRequestContext.class );
-    when( requestContext.getUri() ).thenReturn( TEST_URI );
-    when( requestContext.getHeaders() ).thenReturn( headers );
-    when( requestContext.getStringHeaders() ).thenReturn( stringHeaders );
+    ClientResponse response = mock( ClientResponse.class );
+    when( response.getCookies() ).thenReturn( createResponseCookieList() );
+
+    ClientHandler nextHandler = mock( ClientHandler.class );
+    when( nextHandler.handle( any() ) ).thenReturn( response );
+
+    SessionCookiesFilter filterSpy = spy( new SessionCookiesFilter( mockCookieHandler ) );
+    doReturn( nextHandler ).when( filterSpy ).getNextNotFinal();
 
     // ---
 
-    filter.filter( requestContext );
+    filterSpy.handle( request );
 
     // ---
 
     verify( mockCookieHandler, times( 1 ) )
-      .get( eq( TEST_URI ), eq( stringHeaders ) );
+      .get( eq( TEST_URI ), any() );
 
     verify( headers, times( 1 ) )
       .add( eq( HttpHeaders.COOKIE ), eq( Cookie.valueOf( "cookie1=value1" ) ) );
@@ -143,7 +143,7 @@ public class SessionCookiesFilterTest {
 
     Map<String, List<String>> cookieRequestHeadersMap = new HashMap<>();
 
-    when( mockCookieHandler.get( eq( TEST_URI ), anyObject() ) )
+    when( mockCookieHandler.get( eq( TEST_URI ), any() ) )
       .thenReturn( cookieRequestHeadersMap );
 
     SessionCookiesFilter filter = new SessionCookiesFilter( mockCookieHandler );
@@ -151,22 +151,27 @@ public class SessionCookiesFilterTest {
     @SuppressWarnings( "unchecked" )
     MultivaluedMap<String, Object> headers = (MultivaluedMap<String, Object>) mock( MultivaluedMap.class );
 
-    @SuppressWarnings( "unchecked" )
-    MultivaluedMap<String, String> stringHeaders = (MultivaluedMap<String, String>) mock( MultivaluedMap.class );
+    ClientRequest request = mock( ClientRequest.class );
+    when( request.getURI() ).thenReturn( TEST_URI );
+    when( request.getHeaders() ).thenReturn( headers );
 
-    ClientRequestContext requestContext = mock( ClientRequestContext.class );
-    when( requestContext.getUri() ).thenReturn( TEST_URI );
-    when( requestContext.getHeaders() ).thenReturn( headers );
-    when( requestContext.getStringHeaders() ).thenReturn( stringHeaders );
+    ClientResponse response = mock( ClientResponse.class );
+    when( response.getCookies() ).thenReturn( createResponseCookieList() );
+
+    ClientHandler nextHandler = mock( ClientHandler.class );
+    when( nextHandler.handle( any() ) ).thenReturn( response );
+
+    SessionCookiesFilter filterSpy = spy( new SessionCookiesFilter( mockCookieHandler ) );
+    doReturn( nextHandler ).when( filterSpy ).getNextNotFinal();
 
     // ---
 
-    filter.filter( requestContext );
+    filterSpy.handle( request );
 
     // ---
 
     verify( mockCookieHandler, times( 1 ) )
-      .get( eq( TEST_URI ), eq( stringHeaders ) );
+      .get( eq( TEST_URI ), any() );
 
     verify( headers, never() )
       .add( any( String.class ), any( Cookie.class ) );
@@ -179,17 +184,25 @@ public class SessionCookiesFilterTest {
 
     SessionCookiesFilter filter = new SessionCookiesFilter( mockCookieHandler );
 
-    ClientRequestContext requestContext = mock( ClientRequestContext.class );
-    when( requestContext.getUri() ).thenReturn( TEST_URI );
+    ClientRequest request = mock( ClientRequest.class );
+    when( request.getURI() ).thenReturn( TEST_URI );
 
-    ClientResponseContext responseContext = mock( ClientResponseContext.class );
-    when( responseContext.getCookies() ).thenReturn( createResponseCookieMap() );
+    ClientResponse response = mock( ClientResponse.class );
+    when( response.getCookies() ).thenReturn( createResponseCookieList() );
+
+    ClientHandler nextHandler = mock( ClientHandler.class );
+    when( nextHandler.handle( any() ) ).thenReturn( response );
+
+    SessionCookiesFilter filterSpy = spy( new SessionCookiesFilter( mockCookieHandler ) );
+    doReturn( nextHandler ).when( filterSpy ).getNextNotFinal();
 
     // ---
 
-    filter.filter( requestContext, responseContext );
+    ClientResponse actualResponse = filterSpy.handle( request );
 
     // ---
+
+    assertSame( response, actualResponse );
 
     verify( mockCookieHandler, times( 1 ) )
       .put( eq( TEST_URI ), eq( createCookieResponseHeadersMap() ) );
@@ -202,16 +215,23 @@ public class SessionCookiesFilterTest {
 
     SessionCookiesFilter filter = new SessionCookiesFilter( mockCookieHandler );
 
-    ClientRequestContext requestContext = mock( ClientRequestContext.class );
-    when( requestContext.getUri() ).thenReturn( TEST_URI );
+    ClientRequest request = mock( ClientRequest.class );
+    when( request.getURI() ).thenReturn( TEST_URI );
 
-    Map<String, NewCookie> emptyCookieMap = new LinkedHashMap<>();
-    ClientResponseContext responseContext = mock( ClientResponseContext.class );
-    when( responseContext.getCookies() ).thenReturn( emptyCookieMap );
+    List<NewCookie> emptyCookieList = new ArrayList<>();
+
+    ClientResponse response = mock( ClientResponse.class );
+    when( response.getCookies() ).thenReturn( emptyCookieList );
+
+    ClientHandler nextHandler = mock( ClientHandler.class );
+    when( nextHandler.handle( any() ) ).thenReturn( response );
+
+    SessionCookiesFilter filterSpy = spy( new SessionCookiesFilter( mockCookieHandler ) );
+    doReturn( nextHandler ).when( filterSpy ).getNextNotFinal();
 
     // ---
 
-    filter.filter( requestContext, responseContext );
+    filterSpy.handle( request );
 
     // ---
 

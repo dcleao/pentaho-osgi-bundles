@@ -15,7 +15,7 @@
  * Copyright (c) 2019-2021 Hitachi Vantara. All rights reserved.
  */
 
-package org.hitachivantara.security.web.impl.client.csrf.jaxrs;
+package org.hitachivantara.security.web.impl.client.csrf.jaxrsv1;
 
 /**
  * The `CsrfToken` class represents a CSRF token which needs to be sent

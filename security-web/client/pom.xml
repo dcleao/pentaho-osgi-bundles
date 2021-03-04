@@ -19,6 +19,7 @@
 
   <modules>
     <module>csrf-rest-client-java-jax-rs</module>
+    <module>csrf-rest-client-java-jax-rs-v1</module>
   </modules>
 
 </project>
