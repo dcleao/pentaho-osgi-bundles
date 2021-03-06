@@ -23,21 +23,19 @@ import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.filter.ClientFilter;
 
+import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.internal.CsrfUtil;
+
 import javax.annotation.Nonnull;
-import javax.ws.rs.core.Cookie;
+import javax.annotation.Nullable;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
 import java.io.IOException;
 import java.net.CookieHandler;
-import java.util.Collections;
+import java.net.CookieManager;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A JAX-RS 1.1 (request and response) client filter which maintains cookies across requests.
@@ -48,22 +46,20 @@ public class SessionCookiesFilter extends ClientFilter {
   private final CookieHandler cookieHandler;
 
   /**
-   * Creates a filter which uses the system default cookie handler, {@link CookieHandler#getDefault()}.
+   * Creates a filter which uses a cookie handler which is a new instance of {@link CookieManager}.
    */
   public SessionCookiesFilter() {
-    this( CookieHandler.getDefault() );
+    this( null );
   }
 
   /**
-   * Creates a filter which uses the given cookie handler.
+   * Creates a filter which uses a given cookie handler.
    *
    * @param cookieHandler The cookie handler where to maintain the exchanged cookies.
+   *                      When {@code null}, a new instance of {@link CookieManager} is used.
    */
-  public SessionCookiesFilter( @Nonnull CookieHandler cookieHandler ) {
-
-    Objects.requireNonNull( cookieHandler );
-
-    this.cookieHandler = cookieHandler;
+  public SessionCookiesFilter( @Nullable CookieHandler cookieHandler ) {
+    this.cookieHandler = cookieHandler != null ? cookieHandler : new CookieManager();
   }
 
   @Override
@@ -71,10 +67,10 @@ public class SessionCookiesFilter extends ClientFilter {
 
     // Add cookies in the cookie handler to the request.
     try {
-      getAddRequestCookies( request )
+      CsrfUtil.getCookieStreamForRequest( cookieHandler, request )
         .forEach( cookie -> request.getHeaders().add( HttpHeaders.COOKIE, cookie ) );
     } catch ( IOException e ) {
-      throw new ClientHandlerException( "Could not add cookies to request.", e );
+      throw new ClientHandlerException( "Could not add cookies to the request.", e );
     }
 
     ClientResponse response = getNextNotFinal().handle( request );
@@ -107,38 +103,5 @@ public class SessionCookiesFilter extends ClientFilter {
   // this wrapper allows unit testing.
   ClientHandler getNextNotFinal() {
     return getNext();
-  }
-
-  private Stream<Cookie> getAddRequestCookies( ClientRequest request ) throws IOException {
-
-    Map<String, List<String>> cookiesRequestHeadersMap = cookieHandler.get(
-      request.getURI(),
-      serializeHeaders( request.getHeaders() ) );
-
-    List<String> addCookiesText = cookiesRequestHeadersMap.get( HttpHeaders.COOKIE );
-    if ( addCookiesText == null ) {
-      addCookiesText = Collections.emptyList();
-    }
-
-    return addCookiesText.stream().map( Cookie::valueOf );
-  }
-
-  private Map<String, List<String>> serializeHeaders( MultivaluedMap<String, Object> headers ) {
-    if ( headers == null ) {
-      return Collections.emptyMap();
-    }
-
-    Map<String, List<String>> stringHeaders = new LinkedHashMap<>( headers.size() );
-
-    for ( Map.Entry<String, List<Object>> entry : headers.entrySet() ) {
-      stringHeaders.put(
-        entry.getKey(),
-        entry.getValue()
-          .stream()
-          .map( ClientRequest::getHeaderValue )
-          .collect( Collectors.toList() ) );
-    }
-
-    return stringHeaders;
   }
 }

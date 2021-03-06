@@ -18,45 +18,56 @@
 package org.hitachivantara.security.web.impl.client.csrf.jaxrsv1;
 
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandler;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
 import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.SessionCookiesFilter;
+import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.internal.CsrfUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * The `CsrfTokenServiceClient` class is a CSRF REST service JAX-RS 1.1 client.
+ * This class is a CSRF token service client based on JAX-RS 1.1 technology.
  * <p>
  * The CSRF token retrieval service is necessarily an HTTP service that works over a stateful HTTP connection. The state
  * of the HTTP connection is accomplished through the use of cookies and, specifically, using a `CookieHandler`.
+ * <p>
+ * This class allows full control on how a CSRF token is obtained and used. For a more convenient alternative, which
+ * automatically manages token retrieval and inclusion in all requests made from a Jersey client for JAX-RS 1.1, see the
+ * {@link CsrfTokenFilter} class.
+ * <p>
+ * Example:
+ * <pre>
+ * <code>
+ * Client client = Client.create();
+ * client.addFilter( new HTTPBasicAuthFilter( "user", "password" ) );
+ * client.addFilter( new SessionCookiesFilter() );
+ *
+ * CsrfTokenServiceClient tokenClient = new CsrfTokenServiceClient(
+ *   new URI( ".../csrf/token" ),
+ *   client ) );
+ *
+ * CsrfToken token = tokenClient.getToken();
+ *
+ * // Use the token on a following request.
+ * WebResource.Builder builder = client
+ *   .resource( "..." )
+ *   .type( MediaType.APPLICATION_JSON );
+ *
+ * if ( token != null ) {
+ *   builder.header( token.getHeader(), token.getToken() );
+ * }
+ *
+ * ClientResponse response = builder.get( ClientResponse.class );
+ *
+ * </code>
+ * </pre>
  */
 public class CsrfTokenServiceClient {
-
-  /**
-   * The name of the response header whose value is the name of the request header on which the value of the CSRF token
-   * should be sent on requests to the protected service.
-   */
-  static final String RESPONSE_HEADER_HEADER = "X-CSRF-HEADER";
-
-  /**
-   * The name of the response header whose value is the name of the request parameter on which the value of the CSRF
-   * token should be sent on requests to the protected service.
-   * <p>
-   * It is preferable to use a request header to send the CSRF token, if possible.
-   */
-  static final String RESPONSE_HEADER_PARAM = "X-CSRF-PARAM";
-
-  /**
-   * The name of the response header whose value is the CSRF token.
-   */
-  static final String RESPONSE_HEADER_TOKEN = "X-CSRF-TOKEN";
 
   @Nonnull
   private final Client client;
@@ -84,29 +95,9 @@ public class CsrfTokenServiceClient {
     this.serviceUri = serviceUri;
     this.client = client;
 
-    if ( !hasSessionCookiesFilter( client ) ) {
+    if ( !CsrfUtil.hasClientFilter( client, SessionCookiesFilter.class ) ) {
       client.addFilter( new SessionCookiesFilter() );
     }
-  }
-
-  private boolean hasSessionCookiesFilter( @Nonnull Client client ) {
-
-    ClientHandler handler = client.getHeadHandler();
-    do {
-      if ( !( handler instanceof ClientFilter ) ) {
-        return false;
-      }
-
-      ClientFilter filter = (ClientFilter) handler;
-      if ( SessionCookiesFilter.class.isAssignableFrom( filter.getClass() ) ) {
-        return true;
-      }
-
-      handler = filter.getNext();
-
-    } while ( handler != null );
-
-    return false;
   }
 
   /**
@@ -130,18 +121,17 @@ public class CsrfTokenServiceClient {
   }
 
   /**
-   * Constructs a CSRF token service client with the given token service URI and with the default cookie handler.
+   * Constructs a CSRF token service client with the given token service URI and with a new cookie manager.
    * <p>
    * Cookie maintenance across requests is determinant to the usefulness of the obtained CSRF token, as the token is
    * associated with the current (or newly created) server session and the session is determined by a session cookie.
    * <p>
-   * The default {@link java.net.CookieHandler}, as given by {@link CookieHandler#getDefault()} is used to maintain
-   * session cookies.
+   * A new instance of {@link CookieManager} is used as cookie handler to maintain session cookies.
    *
    * @param serviceUri The URI of the token service.
    */
   public CsrfTokenServiceClient( @Nonnull URI serviceUri ) {
-    this( serviceUri, CookieHandler.getDefault() );
+    this( serviceUri, new CookieManager() );
   }
 
   /**
@@ -156,34 +146,10 @@ public class CsrfTokenServiceClient {
 
     ClientResponse response = resource.get( ClientResponse.class );
 
-    // The response body should be empty, and return 204.
-    // The relevant response is in the response headers.
-    if ( response.getStatus() != 204 ) {
+    if ( !CsrfUtil.isTokenResponseSuccessful( response ) ) {
       return null;
     }
 
-    // When CSRF protection is disabled, the token is not returned.
-    String token = getHeaderString( response, RESPONSE_HEADER_TOKEN );
-    if ( token == null || token.length() == 0 ) {
-      return null;
-    }
-
-    String header = getHeaderString( response, RESPONSE_HEADER_HEADER );
-    String parameter = getHeaderString( response, RESPONSE_HEADER_PARAM );
-
-    return new CsrfToken( header, parameter, token );
-  }
-
-  private String getHeaderString( ClientResponse response, String name ) {
-    List<String> values = response.getHeaders().get( name );
-    if ( values == null ) {
-      return null;
-    }
-
-    if ( values.isEmpty() ) {
-      return "";
-    }
-
-    return String.join( ",", values );
+    return CsrfUtil.readResponseToken( response );
   }
 }

@@ -23,6 +23,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.SessionCookiesFilter;
+import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.internal.CsrfUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,9 +32,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 
-import static org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.CsrfTokenServiceClient.RESPONSE_HEADER_HEADER;
-import static org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.CsrfTokenServiceClient.RESPONSE_HEADER_PARAM;
-import static org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.CsrfTokenServiceClient.RESPONSE_HEADER_TOKEN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -87,9 +85,9 @@ public class CsrfTokenServiceClientTest {
 
     MultivaluedMap<String, String> responseHeadersMap = new MultivaluedMapImpl();
 
-    responseHeadersMap.put( RESPONSE_HEADER_HEADER, Collections.singletonList( TEST_CSRF_HEADER ) );
-    responseHeadersMap.put( RESPONSE_HEADER_PARAM, Collections.singletonList( TEST_CSRF_PARAMETER ) );
-    responseHeadersMap.put( RESPONSE_HEADER_TOKEN, Collections.singletonList( TEST_CSRF_TOKEN ) );
+    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_HEADER, Collections.singletonList( TEST_CSRF_HEADER ) );
+    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_PARAM, Collections.singletonList( TEST_CSRF_PARAMETER ) );
+    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_TOKEN, Collections.singletonList( TEST_CSRF_TOKEN ) );
 
     return responseHeadersMap;
   }
@@ -161,7 +159,7 @@ public class CsrfTokenServiceClientTest {
     when( mockResponse.getStatus() ).thenReturn( 204 );
 
     MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
-    headers.put( RESPONSE_HEADER_TOKEN, Collections.singletonList( "" ) );
+    headers.put( CsrfUtil.RESPONSE_HEADER_TOKEN, Collections.singletonList( "" ) );
     when( mockResponse.getHeaders() ).thenReturn( headers );
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
