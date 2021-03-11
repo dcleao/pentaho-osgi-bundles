@@ -24,12 +24,13 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
 
 /**
- * This REST resource represents the CSRF token that should be used to request protected services, under a certain user
+ * This REST resource represents the CSRF token that should be used to request a specified URL, under a certain user
  * session.
  * <p>
  * This resource is designed to work with Spring's {@link org.springframework.security.web.csrf.CsrfFilter} filter, or
@@ -48,8 +49,8 @@ import java.util.Objects;
  * location, the token can be read for generating pages which embed the token.
  * <p>
  * This resource reads the CSRF token as placed by the filter in the {@code "_csrf"} request attribute and responds with
- * that information. The CSRF token must then be included in requests to protected services under the same user session,
- * so that the requests are accepted.
+ * that information. The CSRF token must then be included in requests to the protected service under the same user
+ * session, so that the request is accepted.
  */
 @Path( "/csrf/token" )
 public class CsrfTokenService {
@@ -60,6 +61,11 @@ public class CsrfTokenService {
    * places the {@link CsrfToken} instance.
    */
   static final String REQUEST_ATTRIBUTE_NAME = "_csrf";
+
+  /**
+   * The name of the query parameter on which to specify the URL of the protected service which is to be called.
+   */
+  static final String QUERY_PARAM_URL = "url";
 
   /**
    * The name of the response header whose value is the name of the request header on which the value of the CSRF token
@@ -92,7 +98,7 @@ public class CsrfTokenService {
   }
 
   @GET
-  public Response getToken() {
+  public Response getToken( @QueryParam( QUERY_PARAM_URL ) String url ) {
 
     Response.ResponseBuilder responseBuilder = Response.noContent();
 

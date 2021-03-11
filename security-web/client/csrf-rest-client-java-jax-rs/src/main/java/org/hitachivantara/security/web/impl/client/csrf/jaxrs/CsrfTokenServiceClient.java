@@ -27,7 +27,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.Response;
 import java.net.CookieHandler;
 import java.net.URI;
-import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * The `CsrfTokenServiceClient` class is a CSRF REST service JAX-RS client.
@@ -36,6 +37,11 @@ import java.util.Objects;
  * of the HTTP connection is accomplished through the use of cookies and, specifically, using a `CookieHandler`.
  */
 public class CsrfTokenServiceClient {
+
+  /**
+   * The name of the query parameter on which to specify the URL of the protected service which is to be called.
+   */
+  static final String QUERY_PARAM_URL = "url";
 
   /**
    * The name of the response header whose value is the name of the request header on which the value of the CSRF token
@@ -76,8 +82,8 @@ public class CsrfTokenServiceClient {
    */
   public CsrfTokenServiceClient( @Nonnull URI serviceUri, @Nonnull Client client ) {
 
-    Objects.requireNonNull( serviceUri );
-    Objects.requireNonNull( client );
+    requireNonNull( serviceUri );
+    requireNonNull( client );
 
     this.serviceUri = serviceUri;
     this.client = client;
@@ -100,7 +106,7 @@ public class CsrfTokenServiceClient {
    */
   public CsrfTokenServiceClient( @Nonnull URI serviceUri, @Nonnull CookieHandler cookieHandler ) {
 
-    Objects.requireNonNull( serviceUri );
+    requireNonNull( serviceUri );
 
     this.serviceUri = serviceUri;
     this.client = ClientBuilder.newClient()
@@ -123,14 +129,18 @@ public class CsrfTokenServiceClient {
   }
 
   /**
-   * Gets a CSRF token to access protected services.
+   * Gets a CSRF token to access a given protected service.
    *
+   * @param protectedServiceUri - The URI of the protected service for which a CSRF token is requested.
    * @return The CSRF token to use to access protected services; {@code null}, CSRF protection is disabled.
    */
   @Nullable
-  public CsrfToken getToken() {
+  public CsrfToken getToken( @Nonnull URI protectedServiceUri ) {
+
+    requireNonNull( protectedServiceUri );
 
     Invocation.Builder builder = client.target( serviceUri )
+      .queryParam( QUERY_PARAM_URL, protectedServiceUri )
       .request();
 
     Response response = builder.get();

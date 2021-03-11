@@ -30,6 +30,8 @@ import java.net.CookieManager;
 import java.net.URI;
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * This class is a CSRF token service client based on JAX-RS 1.1 technology.
  * <p>
@@ -51,7 +53,7 @@ import java.util.Objects;
  *   new URI( ".../csrf/token" ),
  *   client ) );
  *
- * CsrfToken token = tokenClient.getToken();
+ * CsrfToken token = tokenClient.getToken( new URI( "my/protected/service" ) );
  *
  * // Use the token on a following request.
  * WebResource.Builder builder = client
@@ -68,6 +70,11 @@ import java.util.Objects;
  * </pre>
  */
 public class CsrfTokenServiceClient {
+
+  /**
+   * The name of the query parameter on which to specify the URL of the protected service which is to be called.
+   */
+  static final String QUERY_PARAM_URL = "url";
 
   @Nonnull
   private final Client client;
@@ -89,8 +96,8 @@ public class CsrfTokenServiceClient {
    */
   public CsrfTokenServiceClient( @Nonnull URI serviceUri, @Nonnull Client client ) {
 
-    Objects.requireNonNull( serviceUri );
-    Objects.requireNonNull( client );
+    requireNonNull( serviceUri );
+    requireNonNull( client );
 
     this.serviceUri = serviceUri;
     this.client = client;
@@ -113,7 +120,7 @@ public class CsrfTokenServiceClient {
    */
   public CsrfTokenServiceClient( @Nonnull URI serviceUri, @Nonnull CookieHandler cookieHandler ) {
 
-    Objects.requireNonNull( serviceUri );
+    requireNonNull( serviceUri );
 
     this.serviceUri = serviceUri;
     this.client = Client.create();
@@ -135,16 +142,20 @@ public class CsrfTokenServiceClient {
   }
 
   /**
-   * Gets a CSRF token to access protected services.
+   * Gets a CSRF token to access a given protected service.
    *
-   * @return The CSRF token to use to access protected services; {@code null}, CSRF protection is disabled.
+   * @param protectedServiceUri - The URI of the protected service for which a CSRF token is requested.
+   * @return The CSRF token to use to access protected services; {@code null}, CSRF protection is disabled
+   * or otherwise not required for the given URL.
    */
   @Nullable
-  public CsrfToken getToken() {
+  public CsrfToken getToken( @Nonnull URI protectedServiceUri ) {
 
-    WebResource resource = client.resource( serviceUri );
+    requireNonNull( protectedServiceUri );
 
-    ClientResponse response = resource.get( ClientResponse.class );
+    ClientResponse response = client.resource( serviceUri )
+      .queryParam( QUERY_PARAM_URL, protectedServiceUri.toString() )
+      .get( ClientResponse.class );
 
     if ( !CsrfUtil.isTokenResponseSuccessful( response ) ) {
       return null;

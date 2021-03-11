@@ -92,7 +92,7 @@ public class CsrfTokenServiceTest {
 
     when( mockCsrfConfiguration.isEnabled() ).thenReturn( false );
 
-    Response response = csrfTokeResource.getToken();
+    Response response = csrfTokeResource.getToken( "url" );
 
     assertEquals( mockResponse, response );
 
@@ -106,7 +106,7 @@ public class CsrfTokenServiceTest {
   @Test
   public void testWhenNoCsrfTokenInRequest() {
 
-    Response response = csrfTokeResource.getToken();
+    Response response = csrfTokeResource.getToken( "url" );
 
     assertEquals( mockResponse, response );
 
@@ -124,7 +124,7 @@ public class CsrfTokenServiceTest {
     when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) )
       .thenReturn( token );
 
-    Response response = csrfTokeResource.getToken();
+    Response response = csrfTokeResource.getToken( "url" );
 
     assertEquals( mockResponse, response );
 
@@ -148,7 +148,7 @@ public class CsrfTokenServiceTest {
     when( mockRequest.getAttribute( CsrfTokenService.REQUEST_ATTRIBUTE_NAME ) )
       .thenReturn( token );
 
-    Response response = csrfTokeResource.getToken();
+    Response response = csrfTokeResource.getToken( "url" );
 
     assertEquals( HttpServletResponse.SC_NO_CONTENT, response.getStatus() );
   }

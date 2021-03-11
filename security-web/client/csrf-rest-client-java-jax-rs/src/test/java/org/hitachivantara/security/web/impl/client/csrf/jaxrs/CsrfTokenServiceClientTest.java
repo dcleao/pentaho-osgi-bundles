@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
 public class CsrfTokenServiceClientTest {
 
   private static URI TEST_SERVICE_URI;
+  private static URI TEST_PROTECTED_SERVICE_URI;
   private static final String TEST_CSRF_TOKEN = "test-token-value";
   private static final String TEST_CSRF_HEADER = "test-token-header";
   private static final String TEST_CSRF_PARAMETER = "test-token-param";
@@ -54,6 +55,7 @@ public class CsrfTokenServiceClientTest {
   static {
     try {
       TEST_SERVICE_URI = new URI( "http://corp.com:8080/pentaho/api/csrf/service" );
+      TEST_PROTECTED_SERVICE_URI = new URI( "http://mydomain.com:8080/pentaho/moneyTransfer" );
     } catch ( URISyntaxException e ) {
       e.printStackTrace();
     }
@@ -100,7 +102,7 @@ public class CsrfTokenServiceClientTest {
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
-    CsrfToken token = csrfTokenClient.getToken();
+    CsrfToken token = csrfTokenClient.getToken( TEST_PROTECTED_SERVICE_URI );
 
     assertNull( token );
   }
@@ -113,7 +115,7 @@ public class CsrfTokenServiceClientTest {
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
-    csrfTokenClient.getToken();
+    csrfTokenClient.getToken( TEST_PROTECTED_SERVICE_URI );
 
     verify( mockClient, times( 1 ) )
       .target( eq( TEST_SERVICE_URI ) );
@@ -133,7 +135,7 @@ public class CsrfTokenServiceClientTest {
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
-    CsrfToken token = csrfTokenClient.getToken();
+    CsrfToken token = csrfTokenClient.getToken( TEST_PROTECTED_SERVICE_URI );
 
     assertNotNull( token );
 
@@ -153,7 +155,7 @@ public class CsrfTokenServiceClientTest {
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
-    CsrfToken token = csrfTokenClient.getToken();
+    CsrfToken token = csrfTokenClient.getToken( TEST_PROTECTED_SERVICE_URI );
 
     assertNull( token );
   }
@@ -167,7 +169,7 @@ public class CsrfTokenServiceClientTest {
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
-    CsrfToken token = csrfTokenClient.getToken();
+    CsrfToken token = csrfTokenClient.getToken( TEST_PROTECTED_SERVICE_URI );
 
     assertNull( token );
   }
@@ -181,7 +183,7 @@ public class CsrfTokenServiceClientTest {
 
     CsrfTokenServiceClient csrfTokenClient = new CsrfTokenServiceClient( TEST_SERVICE_URI, mockClient );
 
-    CsrfToken token = csrfTokenClient.getToken();
+    CsrfToken token = csrfTokenClient.getToken( TEST_PROTECTED_SERVICE_URI );
 
     assertNull( token );
   }
