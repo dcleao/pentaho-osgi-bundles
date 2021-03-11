@@ -24,6 +24,7 @@ import com.sun.jersey.core.util.StringKeyObjectValueIgnoreCaseMultivaluedMap;
 import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.internal.CsrfUtil;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Stubber;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.HttpMethod;
@@ -37,6 +38,8 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -49,23 +52,16 @@ import static org.mockito.Mockito.when;
 public class CsrfTokenFilterTest {
 
   private static URI TEST_SERVICE_URI;
-  private static URI TEST_1_URI;
-  private static URI TEST_2_URI;
-  private static URI TEST_3_URI;
-  private static final String TEST_CSRF_TOKEN = "test-token-value";
-  private static final String TEST_CSRF_HEADER = "test-token-header";
-  private static final String TEST_CSRF_PARAMETER = "test-token-param";
+  private static URI TEST_PROTECTED_URI;
 
-  private static final String TEST_CSRF_TOKEN_2 = "test-token-value-2";
-  private static final String TEST_CSRF_HEADER_2 = "test-token-header-2";
-  private static final String TEST_CSRF_PARAMETER_2 = "test-token-param-2";
+  private static final String[] TEST_CSRF_TOKENS = new String[] { "test-token-value", "test-token-value-2" };
+  private static final String[] TEST_CSRF_HEADERS = new String[] { "test-token-header", "test-token-header-2" };
+  private static final String[] TEST_CSRF_PARAMETERS = new String[] { "test-token-param", "test-token-param-2" };
 
   static {
     try {
       TEST_SERVICE_URI = new URI( "http://corp.com:8080/pentaho/api/csrf/service" );
-      TEST_1_URI = new URI( "http://example.org/test/1" );
-      TEST_2_URI = new URI( "http://example.org/test/2" );
-      TEST_3_URI = new URI( "http://example.org/test/3" );
+      TEST_PROTECTED_URI = new URI( "http://example.org/test/1" );
     } catch ( URISyntaxException e ) {
       e.printStackTrace();
     }
@@ -88,81 +84,69 @@ public class CsrfTokenFilterTest {
     return props;
   }
 
-  private MultivaluedMap<String, String> createTokenOkResponseHeadersMap1() {
-
-    MultivaluedMap<String, String> responseHeadersMap = new MultivaluedMapImpl();
-
-    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_HEADER, Collections.singletonList( TEST_CSRF_HEADER ) );
-    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_PARAM, Collections.singletonList( TEST_CSRF_PARAMETER ) );
-    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_TOKEN, Collections.singletonList( TEST_CSRF_TOKEN ) );
-
-    return responseHeadersMap;
-  }
-
-
-  private MultivaluedMap<String, String> createTokenOkResponseHeadersMap2() {
-
-    MultivaluedMap<String, String> responseHeadersMap = new MultivaluedMapImpl();
-
-    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_HEADER, Collections.singletonList( TEST_CSRF_HEADER_2 ) );
-    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_PARAM, Collections.singletonList( TEST_CSRF_PARAMETER_2 ) );
-    responseHeadersMap.put( CsrfUtil.RESPONSE_HEADER_TOKEN, Collections.singletonList( TEST_CSRF_TOKEN_2 ) );
-
-    return responseHeadersMap;
-  }
-
-  private ClientRequest createClientRequestMock() {
+  private ClientRequest createClientRequestMock( @Nonnull URI uri ) {
 
     ClientRequest requestMock = mock( ClientRequest.class );
-    when( requestMock.getURI() )
-      .thenReturn( TEST_1_URI );
-
-    when( requestMock.getProperties() )
-      .thenReturn( createRequestPropertiesMapAB() );
-
-    ClientRequest requestClone1Mock = mock( ClientRequest.class );
-    when( requestClone1Mock.getURI() ).thenReturn( TEST_2_URI );
-    when( requestClone1Mock.getHeaders() ).thenReturn( new StringKeyObjectValueIgnoreCaseMultivaluedMap() );
-
-    ClientRequest requestClone2Mock = mock( ClientRequest.class );
-    when( requestClone2Mock.getURI() ).thenReturn( TEST_3_URI );
-    when( requestClone2Mock.getHeaders() ).thenReturn( new StringKeyObjectValueIgnoreCaseMultivaluedMap() );
-
-    when( requestMock.clone() )
-      .thenReturn( requestClone1Mock )
-      .thenReturn( requestClone2Mock );
+    when( requestMock.getURI() ).thenReturn( uri );
+    when( requestMock.getProperties() ).thenReturn( createRequestPropertiesMapAB() );
+    when( requestMock.getHeaders() ).thenReturn( new StringKeyObjectValueIgnoreCaseMultivaluedMap() );
 
     return requestMock;
   }
 
-  private CsrfTokenFilter createTestSubjectSpyBasic() {
+  private ClientRequest createTokenClientRequestMock() {
 
-    CsrfTokenFilter filterSpy = spy( new CsrfTokenFilter( TEST_SERVICE_URI ) );
-
-    // Stub CsrfTokenFilter#newClientRequest( URI uri, String method ) : ClientRequest
     ClientRequest tokenRequestMock = mock( ClientRequest.class );
-    when( tokenRequestMock.getURI() ).thenReturn( TEST_SERVICE_URI );
-    when( tokenRequestMock.getMethod() ).thenReturn( HttpMethod.GET );
     when( tokenRequestMock.getProperties() ).thenReturn( createRequestPropertiesMapC() );
 
-    doReturn( tokenRequestMock )
+    return tokenRequestMock;
+  }
+
+  // Stub CsrfTokenFilter#newClientRequest( URI uri, String method ) : ClientRequest
+  private void stubNewTokenClientRequest( @Nonnull CsrfTokenFilter filterSpy,
+                                          @Nonnull ClientRequest firstRequest,
+                                          ClientRequest... additionalRequests ) {
+    Stubber stubber = doReturn( firstRequest );
+
+    for ( ClientRequest additionalRequest : additionalRequests ) {
+      stubber = stubber.doReturn( additionalRequest );
+    }
+
+    stubber
       .when( filterSpy )
-      .newClientRequest( eq( TEST_SERVICE_URI ), eq( HttpMethod.GET ) );
-
-    return filterSpy;
+      .newClientRequest( any( URI.class ), eq( HttpMethod.GET ) );
   }
 
-  private ClientResponse createTokenResponseOk1() {
-    ClientResponse tokenResponseMock = mock( ClientResponse.class );
-    when( tokenResponseMock.getStatus() ).thenReturn( 204 );
-    when( tokenResponseMock.getHeaders() ).thenReturn( createTokenOkResponseHeadersMap1() );
-    return tokenResponseMock;
+  // Stub CsrfTokenFilter#handleNext( ClientRequest request ) : ClientResponse
+  private void stubHandleNextResponse( @Nonnull CsrfTokenFilter filterSpy,
+                                       @Nonnull ClientResponse firstResponse,
+                                       ClientResponse... additionalResponses ) {
+
+    Stubber stubber = doReturn( firstResponse );
+
+    for ( ClientResponse additionalResponse : additionalResponses ) {
+      stubber = stubber.doReturn( additionalResponse );
+    }
+
+    stubber
+      .when( filterSpy )
+      .handleNext( any( ClientRequest.class ) );
   }
 
-  private ClientResponse createTokenResponseOk2() {
+  private ClientResponse createTokenResponseOk( int tokenIndex ) {
     ClientResponse tokenResponseMock = mock( ClientResponse.class );
     when( tokenResponseMock.getStatus() ).thenReturn( 204 );
-    when( tokenResponseMock.getHeaders() ).thenReturn( createTokenOkResponseHeadersMap2() );
+
+    MultivaluedMap<String, String> responseHeadersMap = new MultivaluedMapImpl();
+    responseHeadersMap
+      .put( CsrfUtil.RESPONSE_HEADER_HEADER, Collections.singletonList( TEST_CSRF_HEADERS[ tokenIndex ] ) );
+    responseHeadersMap
+      .put( CsrfUtil.RESPONSE_HEADER_PARAM, Collections.singletonList( TEST_CSRF_PARAMETERS[ tokenIndex ] ) );
+    responseHeadersMap
+      .put( CsrfUtil.RESPONSE_HEADER_TOKEN, Collections.singletonList( TEST_CSRF_TOKENS[ tokenIndex ] ) );
+
+    when( tokenResponseMock.getHeaders() ).thenReturn( responseHeadersMap );
+
     return tokenResponseMock;
   }
 
@@ -178,55 +162,31 @@ public class CsrfTokenFilterTest {
     return actualResponseMock;
   }
 
-  private ClientResponse createActualResponse403() {
-    ClientResponse actualResponseMock = mock( ClientResponse.class );
-    when( actualResponseMock.getStatus() ).thenReturn( 403 );
-    return actualResponseMock;
-  }
-
-  private void checkToken1IsPresentInRequest( @Nonnull ClientRequest request ) {
+  private void checkTokenIsPresentInRequest( @Nonnull ClientRequest request, int tokenIndex ) {
 
     MultivaluedMap<String, Object> headersMap = request.getHeaders();
 
     assertNotNull( headersMap );
 
-    List<Object> csrfHeaders = headersMap.get( TEST_CSRF_HEADER );
+    List<Object> csrfHeaders = headersMap.get( TEST_CSRF_HEADERS[ tokenIndex ] );
 
     assertNotNull( csrfHeaders );
     assertEquals( 1, csrfHeaders.size() );
 
-    assertEquals( TEST_CSRF_TOKEN, csrfHeaders.get( 0 ) );
-  }
-
-  private void checkToken2IsPresentInRequest( @Nonnull ClientRequest request ) {
-
-    MultivaluedMap<String, Object> headersMap = request.getHeaders();
-
-    assertNotNull( headersMap );
-
-    List<Object> csrfHeaders = headersMap.get( TEST_CSRF_HEADER_2 );
-
-    assertNotNull( csrfHeaders );
-    assertEquals( 1, csrfHeaders.size() );
-
-    assertEquals( TEST_CSRF_TOKEN_2, csrfHeaders.get( 0 ) );
+    assertEquals( TEST_CSRF_TOKENS[ tokenIndex ], csrfHeaders.get( 0 ) );
   }
 
   @Test
-  public void testGetsATokenOnFirstUseAndUsesIt() {
+  public void testATokenIsFetchedAndThenUsed() {
 
-    ClientRequest requestMock = createClientRequestMock();
-    CsrfTokenFilter filterSpy = createTestSubjectSpyBasic();
+    ClientRequest requestMock = createClientRequestMock( TEST_PROTECTED_URI );
+    ClientRequest tokenRequestMock = createTokenClientRequestMock();
 
-    // Stub CsrfTokenFilter#handleNext( ClientRequest request ) : ClientResponse
-    // These need to be done, in variables, before the `doReturn` calls, or otherwise
-    // mockito loses its mind.
-    ClientResponse tokenResponse = createTokenResponseOk1();
-    ClientResponse actualResponseStatusOk = createActualResponseOk();
-    doReturn( tokenResponse )
-      .doReturn( actualResponseStatusOk )
-      .when( filterSpy )
-      .handleNext( any( ClientRequest.class ) );
+    CsrfTokenFilter filterSpy = spy( new CsrfTokenFilter( TEST_SERVICE_URI ) );
+
+    stubNewTokenClientRequest( filterSpy, tokenRequestMock );
+
+    stubHandleNextResponse( filterSpy, createTokenResponseOk( 0 ), createActualResponseOk() );
 
     ClientResponse response = filterSpy.handle( requestMock );
 
@@ -241,157 +201,93 @@ public class CsrfTokenFilterTest {
 
     List<ClientRequest> clientRequests = requestsCaptor.getAllValues();
 
-    // Check the token request.
-    ClientRequest tokenRequest = clientRequests.get( 0 );
-    assertEquals( TEST_SERVICE_URI, tokenRequest.getURI() );
+    assertSame( tokenRequestMock, clientRequests.get( 0 ) );
+    assertSame( requestMock, clientRequests.get( 1 ) );
 
-    // Check the actual request.
-    ClientRequest actualRequestClone1 = clientRequests.get( 1 );
-    assertEquals( TEST_2_URI, actualRequestClone1.getURI() );
-
-    // Check the token header is present in the actual request clone.
-    checkToken1IsPresentInRequest( actualRequestClone1 );
+    // Check the token header is present in the request.
+    checkTokenIsPresentInRequest( requestMock, 0 );
   }
 
   @Test
-  public void testGetsATokenOnFirstUseAndReturnsItsFailedResponse() {
+  public void testTokenRequestAlsoContainsAllPropertiesOfActualRequest() {
 
-    ClientRequest requestMock = createClientRequestMock();
-    CsrfTokenFilter filterSpy = createTestSubjectSpyBasic();
+    ClientRequest requestMock = createClientRequestMock( TEST_PROTECTED_URI );
+    ClientRequest tokenRequestMock = createTokenClientRequestMock();
 
-    // Stub CsrfTokenFilter#handleNext( ClientRequest request ) : ClientResponse
-    // These need to be done, in variables, before the `doReturn` calls, or otherwise
-    // mockito loses its mind.
-    ClientResponse tokenResponse = createTokenResponseFailed();
+    CsrfTokenFilter filterSpy = spy( new CsrfTokenFilter( TEST_SERVICE_URI ) );
 
-    doReturn( tokenResponse )
-      .when( filterSpy )
-      .handleNext( any( ClientRequest.class ) );
+    stubNewTokenClientRequest( filterSpy, tokenRequestMock );
+    stubHandleNextResponse( filterSpy, createTokenResponseOk( 0 ), createActualResponseOk() );
+
+    filterSpy.handle( requestMock );
+
+    Map<String, Object> props = tokenRequestMock.getProperties();
+    assertEquals( 3, props.size() );
+    assertTrue( props.containsKey( "A" ) );
+    assertTrue( props.containsKey( "B" ) );
+    assertTrue( props.containsKey( "C" ) );
+  }
+
+  @Test
+  public void testATokenIsFetchedAndItsResponseReturnedIfFailed() {
+
+    ClientRequest requestMock = createClientRequestMock( TEST_PROTECTED_URI );
+    ClientResponse tokenResponseFailed = createTokenResponseFailed();
+
+    CsrfTokenFilter filterSpy = spy( new CsrfTokenFilter( TEST_SERVICE_URI ) );
+    stubNewTokenClientRequest( filterSpy, createTokenClientRequestMock() );
+    stubHandleNextResponse( filterSpy, tokenResponseFailed );
 
     ClientResponse response = filterSpy.handle( requestMock );
 
-    assertEquals( tokenResponse, response );
+    assertEquals( tokenResponseFailed, response );
   }
 
   @Test
-  public void testGetsATokenOnFirstUseAndUsesItAndReusesItOnSecondUse() {
+  public void testATokenIsNotReusedEvenIfRightAfterAndForTheSameURL() {
 
-    ClientRequest request1Mock = createClientRequestMock();
-    ClientRequest request2Mock = createClientRequestMock();
-    CsrfTokenFilter filterSpy = createTestSubjectSpyBasic();
+    ClientRequest actualRequest1Mock = createClientRequestMock( TEST_PROTECTED_URI );
+    ClientRequest actualRequest2Mock = createClientRequestMock( TEST_PROTECTED_URI );
+    ClientRequest tokenRequest1Mock = createTokenClientRequestMock();
+    ClientRequest tokenRequest2Mock = createTokenClientRequestMock();
 
-    // Stub CsrfTokenFilter#handleNext( ClientRequest request ) : ClientResponse
-    // These need to be done, in variables, before the `doReturn` calls, or otherwise
-    // mockito loses its mind.
-    ClientResponse tokenResponse = createTokenResponseOk1();
-    ClientResponse actualResponse1StatusOk = createActualResponseOk();
-    ClientResponse actualResponse2StatusOk = createActualResponseOk();
+    CsrfTokenFilter filterSpy = spy( new CsrfTokenFilter( TEST_SERVICE_URI ) );
 
-    doReturn( tokenResponse )
-      .doReturn( actualResponse1StatusOk )
-      .doReturn( actualResponse2StatusOk )
-      .when( filterSpy )
-      .handleNext( any( ClientRequest.class ) );
+    stubNewTokenClientRequest( filterSpy, tokenRequest1Mock, tokenRequest2Mock );
 
-    // ----
-
-    ClientResponse response1 = filterSpy.handle( request1Mock );
-    ClientResponse response2 = filterSpy.handle( request2Mock );
+    stubHandleNextResponse(
+      filterSpy,
+      createTokenResponseOk( 0 ),
+      createActualResponseOk(),
+      createTokenResponseOk( 1 ),
+      createActualResponseOk() );
 
     // ----
 
+    ClientResponse response1 = filterSpy.handle( actualRequest1Mock );
+
+    ClientResponse response2 = filterSpy.handle( actualRequest2Mock );
+
+    // ----
+
+    assertNotNull( response1 );
+    assertEquals( 200, response1.getStatus() );
     assertNotNull( response2 );
     assertEquals( 200, response2.getStatus() );
 
     ArgumentCaptor<ClientRequest> requestsCaptor = ArgumentCaptor.forClass( ClientRequest.class );
 
-    // One call for the token request, the other two for the two actual requests.
-    verify( filterSpy, times( 3 ) )
+    verify( filterSpy, times( 4 ) )
       .handleNext( requestsCaptor.capture() );
 
     List<ClientRequest> clientRequests = requestsCaptor.getAllValues();
 
-    // Check the token request.
-    ClientRequest tokenRequest = clientRequests.get( 0 );
-    assertEquals( TEST_SERVICE_URI, tokenRequest.getURI() );
+    assertSame( tokenRequest1Mock, clientRequests.get( 0 ) );
+    assertSame( actualRequest1Mock, clientRequests.get( 1 ) );
+    checkTokenIsPresentInRequest( actualRequest1Mock, 0 );
 
-    // Check the actual request (clone 1 of request 1).
-    ClientRequest actualRequestClone1 = clientRequests.get( 1 );
-    assertEquals( TEST_2_URI, actualRequestClone1.getURI() );
-
-    // Check the actual request (clone 1 of request 2).
-    ClientRequest actualRequestClone2 = clientRequests.get( 2 );
-    assertEquals( TEST_2_URI, actualRequestClone2.getURI() );
-
-    // Check the token header is present in the actual request clones.
-    checkToken1IsPresentInRequest( actualRequestClone1 );
-    checkToken1IsPresentInRequest( actualRequestClone2 );
-  }
-
-  @Test
-  public void testGetsATokenOnFirstUseAndUsesItAndTriesToReuseItOnSecondUseButRenewsItDueTo403() {
-
-    ClientRequest request1Mock = createClientRequestMock();
-    ClientRequest request2Mock = createClientRequestMock();
-    CsrfTokenFilter filterSpy = createTestSubjectSpyBasic();
-
-    // Stub CsrfTokenFilter#handleNext( ClientRequest request ) : ClientResponse
-    // These need to be done, in variables, before the `doReturn` calls, or otherwise
-    // mockito loses its mind.
-    ClientResponse tokenResponse1 = createTokenResponseOk1();
-    ClientResponse actualResponse1StatusOk = createActualResponseOk();
-    ClientResponse actualResponse2Status403 = createActualResponse403();
-    ClientResponse tokenResponse2 = createTokenResponseOk2();
-
-    doReturn( tokenResponse1 )
-      .doReturn( actualResponse1StatusOk )
-      .doReturn( actualResponse2Status403 )
-      .doReturn( tokenResponse2 )
-      .when( filterSpy )
-      .handleNext( any( ClientRequest.class ) );
-
-    // ----
-
-    ClientResponse response1 = filterSpy.handle( request1Mock );
-    ClientResponse response2 = filterSpy.handle( request2Mock );
-
-    // ----
-
-    assertEquals( tokenResponse2, response2 );
-
-    // One call for the token request
-    // another for the first actual request
-    // another for the rejected second actual request
-    // another for the second token request
-    // another for the succeeded second actual request
-
-    ArgumentCaptor<ClientRequest> requestsCaptor = ArgumentCaptor.forClass( ClientRequest.class );
-    verify( filterSpy, times( 5 ) )
-      .handleNext( requestsCaptor.capture() );
-
-    List<ClientRequest> clientRequests = requestsCaptor.getAllValues();
-
-    // Check the first token request.
-    ClientRequest tokenRequest1 = clientRequests.get( 0 );
-    assertEquals( TEST_SERVICE_URI, tokenRequest1.getURI() );
-
-    // Check the actual request (clone 1 of request 1).
-    ClientRequest actualRequestClone1 = clientRequests.get( 1 );
-    assertEquals( TEST_2_URI, actualRequestClone1.getURI() );
-    checkToken1IsPresentInRequest( actualRequestClone1 );
-
-    // Check the rejected actual request (clone 1 of request 2).
-    ClientRequest actualRequestClone2 = clientRequests.get( 2 );
-    assertEquals( TEST_2_URI, actualRequestClone2.getURI() );
-    checkToken1IsPresentInRequest( actualRequestClone2 );
-
-    // Check the second token request.
-    ClientRequest tokenRequest2 = clientRequests.get( 3 );
-    assertEquals( TEST_SERVICE_URI, tokenRequest2.getURI() );
-
-    // Check the succeeded actual request (clone 2 of request 2).
-    ClientRequest actualRequestClone3 = clientRequests.get( 4 );
-    assertEquals( TEST_3_URI, actualRequestClone3.getURI() );
-    checkToken2IsPresentInRequest( actualRequestClone3 );
+    assertSame( tokenRequest2Mock, clientRequests.get( 2 ) );
+    assertSame( actualRequest2Mock, clientRequests.get( 3 ) );
+    checkTokenIsPresentInRequest( actualRequest2Mock, 1 );
   }
 }

@@ -75,6 +75,7 @@ public class CsrfTokenServiceClientTest {
     when( mockClient.getHeadHandler() ).thenReturn( handler );
 
     when( mockClient.resource( any( URI.class ) ) ).thenReturn( mockWebResource );
+    when( mockWebResource.queryParam( any(), any() ) ).thenReturn( mockWebResource );
     when( mockWebResource.get( eq( ClientResponse.class ) ) ).thenReturn( mockResponse );
 
     // ---

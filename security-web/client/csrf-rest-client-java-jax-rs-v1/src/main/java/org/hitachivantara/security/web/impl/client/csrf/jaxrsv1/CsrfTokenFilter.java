@@ -8,10 +8,8 @@ import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.SessionCook
 import org.hitachivantara.security.web.impl.client.csrf.jaxrsv1.util.internal.CsrfUtil;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
 import static java.util.Objects.requireNonNull;
@@ -48,73 +46,45 @@ import static java.util.Objects.requireNonNull;
  */
 public class CsrfTokenFilter extends ClientFilter {
 
+  /**
+   * The name of the query parameter on which to specify the URL of the protected service which is to be called.
+   */
+  static final String QUERY_PARAM_URL = "url";
+
   @Nonnull
   private final URI serviceUri;
-
-  @Nullable
-  private TokenHolder tokenHolder;
-
-  private static class TokenHolder {
-    @Nullable
-    public final CsrfToken token;
-
-    public TokenHolder( @Nullable CsrfToken token ) {
-      this.token = token;
-    }
-  }
 
   public CsrfTokenFilter( @Nonnull URI serviceUri ) {
     this.serviceUri = requireNonNull( serviceUri );
   }
 
   @Override
-  public ClientResponse handle( ClientRequest originalRequest ) throws ClientHandlerException {
+  public ClientResponse handle( ClientRequest request ) throws ClientHandlerException {
 
-    ClientResponse failedResponse = ensureTokenForRequest( originalRequest );
-    if ( failedResponse != null ) {
-      return failedResponse;
+    // Get a token.
+    ClientResponse tokenResponse = handleNext( createTokenClientRequest( request ) );
+    if ( !CsrfUtil.isTokenResponseSuccessful( tokenResponse ) ) {
+      // Something went wrong. Return the failed response.
+      return tokenResponse;
     }
 
-    ClientResponse response = handleWithCurrentToken( originalRequest );
-
-    if ( response.getStatus() == 403 && getCurrentToken() != null ) {
-      // Retry with a fresh token.
-
-      failedResponse = refreshTokenForRequest( originalRequest );
-      if ( failedResponse != null ) {
-        return failedResponse;
-      }
-
-      response = handleWithCurrentToken( originalRequest );
+    CsrfToken token = CsrfUtil.readResponseToken( tokenResponse );
+    if ( token != null ) {
+      request.getHeaders().add( token.getHeader(), token.getToken() );
     }
 
-    return response;
-  }
-
-  @Nullable
-  private CsrfToken getCurrentToken() {
-    return tokenHolder != null ? tokenHolder.token : null;
-  }
-
-  @Nullable
-  private ClientResponse ensureTokenForRequest( @Nonnull ClientRequest request ) {
-    if ( tokenHolder == null ) {
-      // Try to get a token.
-      ClientResponse tokenResponse = handleNext( createTokenClientRequest( request ) );
-      if ( !CsrfUtil.isTokenResponseSuccessful( tokenResponse ) ) {
-        // Something went wrong. Return the failed response.
-        return tokenResponse;
-      }
-
-      tokenHolder = new TokenHolder( CsrfUtil.readResponseToken( tokenResponse ) );
-    }
-
-    return null;
+    return handleNext( request );
   }
 
   @Nonnull
   private ClientRequest createTokenClientRequest( @Nonnull ClientRequest request ) {
-    ClientRequest tokenRequest = newClientRequest( serviceUri, HttpMethod.GET );
+
+    URI finalServiceUri = UriBuilder
+      .fromUri( serviceUri )
+      .queryParam( QUERY_PARAM_URL, request.getURI() )
+      .build();
+
+    ClientRequest tokenRequest = newClientRequest( finalServiceUri, HttpMethod.GET );
     tokenRequest.getProperties().putAll( request.getProperties() );
     return tokenRequest;
   }
@@ -125,26 +95,8 @@ public class CsrfTokenFilter extends ClientFilter {
     return ClientRequest.create().build( uri, method );
   }
 
-  @Nonnull
-  private ClientResponse handleWithCurrentToken( @Nonnull ClientRequest originalRequest ) {
-    ClientRequest request = originalRequest.clone();
-
-    CsrfToken token = getCurrentToken();
-    if ( token != null ) {
-      request.getHeaders().add( token.getHeader(), token.getToken() );
-    }
-
-    return handleNext( request );
-  }
-
-  @Nullable
-  private ClientResponse refreshTokenForRequest( @Nonnull ClientRequest request ) {
-    tokenHolder = null;
-    return ensureTokenForRequest( request );
-  }
-
+  // For unit test stubbing.
   // getNext is final and cannot be stubbed.
-  // this wrapper allows unit testing.
   @Nonnull
   ClientResponse handleNext( @Nonnull ClientRequest request ) {
     return getNext().handle( request );
